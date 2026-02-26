@@ -21,7 +21,7 @@ func TestGetBalance(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"success","balance":123.45,"currency":"USD"}`))
+		_, _ = w.Write([]byte(`{"status":"success","balance":123.45,"currency":"USD"}`))
 	}))
 	defer server.Close()
 
@@ -51,7 +51,7 @@ func TestGetSIPs(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status":"success",
 			"data":[
 				{"sip_user":"user1","status":"active","password":"pass1"},
@@ -87,7 +87,7 @@ func TestGetDIDs(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status":"success",
 			"data":[
 				{"number":"+14155555555","type":"voice","status":"active"},
@@ -136,7 +136,7 @@ func TestSendSMS(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status":"success",
 			"data":{"id":"msg123","status":"sent","timestamp":"2025-02-26T07:42:00Z"}
 		}`))
@@ -169,7 +169,7 @@ func TestGetPBXInfo(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{
+		_, _ = w.Write([]byte(`{
 			"status":"success",
 			"data":{"name":"My PBX","status":"active","pbx_id":"pbx123"}
 		}`))

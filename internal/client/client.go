@@ -180,7 +180,9 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 	if err != nil {
 		return fmt.Errorf("failed to execute request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	// Read response body
 	respBody, err := io.ReadAll(resp.Body)
