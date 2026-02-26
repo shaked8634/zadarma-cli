@@ -1,0 +1,122 @@
+# Zadarma CLI - Design Decisions & Architecture
+
+## Overview
+A Go CLI tool for interacting with the Zadarma VoIP API. Designed to follow Unix philosophy: simple, composable, pipe-friendly.
+
+## Architecture
+
+### Package Structure
+```
+cmd/zadarma/         - CLI entry point, command handlers
+internal/auth/       - HMAC-SHA1 signature generation (Zadarma auth)
+internal/client/     - HTTP client wrapper for API calls
+tests/               - Integration tests
+```
+
+### Key Components
+
+#### 1. **Auth Signer** (`internal/auth/signer.go`)
+Implements the Zadarma HMAC-SHA1 signature algorithm:
+1. Sort params alphabetically
+2. Build query string: `param1=value1&param2=value2`
+3. Concatenate: `method + paramsStr + md5(paramsStr)`
+4. HMAC-SHA1 with secret key
+5. Base64 encode
+6. Authorization header: `key:signature`
+
+**Design choice:** Separate package keeps auth logic testable and reusable.
+
+#### 2. **API Client** (`internal/client/client.go`)
+Wraps HTTP requests with automatic signature generation:
+- Handles JSON unmarshaling
+- Provides typed method wrappers (e.g., `GetBalance()`)
+- Extensible for new endpoints
+
+**Design choice:** Generic `Get()`, `Post()` methods allow easy addition of new features without code duplication.
+
+#### 3. **CLI Entry Point** (`cmd/zadarma/main.go`)
+Command-based interface using Go's `flag` package:
+- `balance` - Get account balance
+- `help` - Show help
+- Supports environment variables: `ZADARMA_API_KEY`, `ZADARMA_API_SECRET`
+- Can be extended with subcommands
+
+**Design choice:** Lightweight CLI framework using stdlib `flag` to minimize dependencies. Can migrate to `cobra` if needed later.
+
+## Output Format
+
+Currently supports **text output**:
+```
+Balance: 123.45 USD
+```
+
+JSON output can be added as a `--json` flag in the future.
+
+## Authentication
+
+### Setup
+Export credentials as environment variables:
+```bash
+export ZADARMA_API_KEY="your_api_key"
+export ZADARMA_API_SECRET="your_api_secret"
+```
+
+Or pass via CLI flags:
+```bash
+zadarma-cli -key "..." -secret "..." balance
+```
+
+### Testing the Balance Endpoint
+
+Use this curl command to test (signature shown for your API key):
+```bash
+curl -X GET 'https://api.zadarma.com/v1/info/balance/' \
+  -H 'Authorization: 1c64dee7ee7638e3a507:rhSjhy87PyCS8HamPv6b1t199EA='
+```
+
+To generate signatures for other endpoints:
+1. Prepare your params as `key=value&key2=value2` (alphabetically sorted)
+2. Calculate `md5(params_string)`
+3. Build: `method + params + md5`
+4. HMAC-SHA1 with secret
+5. Base64 encode
+
+The `Signer` package automates this.
+
+## Future Enhancements
+
+### Phase 1 (Current)
+- [x] Get balance
+
+### Phase 2
+- [ ] Get call rates
+- [ ] Get pricing plans
+- [ ] Request callback
+- [ ] SMS sending
+- [ ] SIP management
+
+### Phase 3
+- [ ] JSON output option (`--json` flag)
+- [ ] Piping/STDIN support for bulk operations
+- [ ] Call recording management
+- [ ] PBX statistics
+
+## Testing
+
+Run unit tests:
+```bash
+go test ./internal/auth -v
+```
+
+Signature generation is tested against the known test credentials.
+
+## Dependencies
+
+Go 1.25.7 - uses only stdlib (no external dependencies).
+
+## Next Steps
+
+1. Push to Forgejo: `git push origin main`
+2. Add more endpoint wrappers (rates, SMS, etc.)
+3. Add integration tests with real API
+4. Consider CLI framework upgrade (cobra) if feature set grows
