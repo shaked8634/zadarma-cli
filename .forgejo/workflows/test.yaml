@@ -34,5 +34,6 @@ jobs:
 
       - name: Build binary
         run: |
-          ls -R
-          go build -v -o /tmp/zadarma-test ./cmd/zadarma
+          pwd
+          find . -maxdepth 3 -not -path '*/.*'
+          go build -v -o /tmp/zadarma-test ./cmd/zadarma/main.go
