@@ -37,9 +37,8 @@ jobs:
         id: create_release
         uses: https://code.forgejo.org/forgejo/release-action@v1
         with:
-          direction: upload
-          release-dir: .
-          files: zadarma-linux-amd64
+          files: |
+            zadarma-linux-amd64
           tag-name: ${{ steps.version.outputs.VERSION }}
           release-name: "Release ${{ steps.version.outputs.VERSION }}"
           release-note: "Release ${{ steps.version.outputs.VERSION }} - zadarma-cli binary for linux/amd64"
