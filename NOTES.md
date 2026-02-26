@@ -83,23 +83,47 @@ To generate signatures for other endpoints:
 
 The `Signer` package automates this.
 
+## CLI Framework Migration
+
+### v0.2.0 - Cobra Framework
+Migrated from stdlib `flag` to `spf13/cobra` for:
+- Better subcommand structure
+- Consistent flag handling across commands
+- Easier future expansion
+- Auto-generated shell completions
+
+New command structure:
+```
+zadarma-cli balance [--json]
+zadarma-cli sip list [--json]
+zadarma-cli did list [--json]
+zadarma-cli sms send --phone <num> --message <msg> [--json]
+zadarma-cli pbx info [--json]
+```
+
 ## Future Enhancements
 
-### Phase 1 (Current)
+### Phase 1 (Complete)
 - [x] Get balance
+- [x] SIP account listing
+- [x] Phone number (DID) listing
+- [x] SMS sending
+- [x] PBX info retrieval
+- [x] JSON output support (`--json` flag)
+- [x] Cobra-based CLI framework
 
 ### Phase 2
-- [ ] Get call rates
-- [ ] Get pricing plans
-- [ ] Request callback
-- [ ] SMS sending
-- [ ] SIP management
+- [ ] DID number details (routing, forwarding)
+- [ ] SMS history/logs
+- [ ] Call rates and pricing
+- [ ] Request callback endpoint
+- [ ] Extension management
 
 ### Phase 3
-- [ ] JSON output option (`--json` flag)
 - [ ] Piping/STDIN support for bulk operations
 - [ ] Call recording management
-- [ ] PBX statistics
+- [ ] PBX statistics and usage reports
+- [ ] Config file support (.zadarma/config)
 
 ## Testing
 

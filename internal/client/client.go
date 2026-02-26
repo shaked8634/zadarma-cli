@@ -60,6 +60,92 @@ func (c *Client) GetBalance() (balance interface{}, currency string, err error) 
 	return resp.Balance, resp.Currency, nil
 }
 
+// GetSIPs fetches all SIP accounts.
+func (c *Client) GetSIPs() ([]map[string]interface{}, error) {
+	method := "/sip/"
+	params := url.Values{}
+
+	var resp struct {
+		Status string                   `json:"status"`
+		Data   []map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
+// GetDIDs fetches all phone numbers (DIDs).
+func (c *Client) GetDIDs() ([]map[string]interface{}, error) {
+	method := "/did/"
+	params := url.Values{}
+
+	var resp struct {
+		Status string                   `json:"status"`
+		Data   []map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
+// SendSMS sends an SMS message.
+func (c *Client) SendSMS(phoneNumber, message string) (map[string]interface{}, error) {
+	method := "/sms/"
+	params := url.Values{}
+	params.Set("number", phoneNumber)
+	params.Set("message", message)
+
+	var resp struct {
+		Status string                 `json:"status"`
+		Data   map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Post(method, params, nil, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
+// GetPBXInfo fetches PBX configuration information.
+func (c *Client) GetPBXInfo() (map[string]interface{}, error) {
+	method := "/pbx/"
+	params := url.Values{}
+
+	var resp struct {
+		Status string                 `json:"status"`
+		Data   map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
 // Get performs a GET request to the API.
 func (c *Client) Get(method string, params url.Values, result interface{}) error {
 	return c.request("GET", method, params, nil, result)
