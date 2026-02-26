@@ -33,4 +33,6 @@ jobs:
         run: go test ./... -v
 
       - name: Build binary
-        run: go build -o zadarma-test ./cmd/zadarma
+        run: |
+          ls -R
+          go build -v -o zadarma-test ./cmd/zadarma
