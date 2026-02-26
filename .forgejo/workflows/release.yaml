@@ -31,17 +31,43 @@ jobs:
           GOOS=linux GOARCH=amd64 go build -v -o dist/zadarma-linux-amd64 ./cmd/zadarma
           ls -la dist/
 
-      - name: Create release
-        uses: actions/forgejo-release@v2.6.0
-        with:
-          direction: upload
-          tag: ${{ github.ref_name }}
-          release-dir: dist
-          release-notes: "Release ${{ github.ref_name }} - zadarma-cli binary for linux/amd64"
-          override: true
-
-      - name: Debug release assets
+      - name: Create release and upload asset
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ls -R dist/
-          echo "Release ID and asset upload check (manual fallback)"
-          # We'll see the logs from the forgejo-release action above to confirm upload
+          set -e
+          VERSION="${GITHUB_REF#refs/tags/}"
+          REPO="${GITHUB_REPOSITORY}"
+          
+          # Create Release
+          echo "Creating release for ${VERSION}..."
+          curl -s -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/json" \
+            "${GITHUB_SERVER_URL}/api/v1/repos/${REPO}/releases" \
+            -d "{
+              \"tag_name\": \"${VERSION}\",
+              \"name\": \"Release ${VERSION}\",
+              \"body\": \"Release ${VERSION} - zadarma-cli binary for linux/amd64\",
+              \"draft\": false,
+              \"prerelease\": false
+            }" > release_resp.json
+          
+          RELEASE_ID=$(grep -o '"id":[0-9]*' release_resp.json | head -1 | cut -d':' -f2)
+          if [ -z "$RELEASE_ID" ]; then
+            echo "Failed to create release or get ID. Response:"
+            cat release_resp.json
+            exit 1
+          fi
+          echo "Release created with ID: ${RELEASE_ID}"
+          
+          # Upload Asset
+          echo "Uploading zadarma-linux-amd64..."
+          curl -s -X POST \
+            -H "Authorization: token ${GITHUB_TOKEN}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@dist/zadarma-linux-amd64" \
+            "${GITHUB_SERVER_URL}/api/v1/repos/${REPO}/releases/${RELEASE_ID}/assets?name=zadarma-linux-amd64"
+          
+          echo "Release process complete."
