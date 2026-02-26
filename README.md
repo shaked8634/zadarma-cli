@@ -77,17 +77,36 @@ With JSON output:
 
 ## Global Flags
 
-- `--key <key>`: API key (overrides `ZADARMA_API_KEY` env var)
-- `--secret <secret>`: API secret (overrides `ZADARMA_API_SECRET` env var)
+- `--key, -k <key>`: API key (overrides `ZADARMA_API_KEY` env var)
+- `--secret, -s <secret>`: API secret (overrides `ZADARMA_API_SECRET` env var)
 - `--json`: Output in JSON format
 - `-v, --version`: Show version
 - `-h, --help`: Show help
 
+## Authentication Priority
+
+When both CLI flags and environment variables are present, **CLI flags take priority**:
+
+```bash
+# Uses command-line flags (highest priority)
+./zadarma -k "api_key" -s "api_secret" balance
+
+# Falls back to env vars if flags not provided
+export ZADARMA_API_KEY="api_key"
+export ZADARMA_API_SECRET="api_secret"
+./zadarma balance
+```
+
 ## Examples
 
-### Get balance with explicit credentials
+### Get balance with explicit credentials (long form)
 ```bash
 ./zadarma --key "abc123" --secret "xyz789" balance
+```
+
+### Get balance with short flags
+```bash
+./zadarma -k "abc123" -s "xyz789" balance
 ```
 
 ### List SIP accounts in JSON
