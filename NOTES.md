@@ -114,9 +114,33 @@ Signature generation is tested against the known test credentials.
 
 Go 1.25.7 - uses only stdlib (no external dependencies).
 
+## Deployment to Forgejo
+
+### Prerequisites
+1. Create an empty repository on Forgejo: `https://forgejo.o-st.dev/zadarma/zadarma-cli`
+2. SSH key configured for git access
+
+### Push Commands
+```bash
+cd projects/zadarma-cli
+git remote add origin ssh://git@forgejo.o-st.dev/zadarma/zadarma-cli.git
+git branch -M main
+git push -u origin main
+```
+
 ## Next Steps
 
-1. Push to Forgejo: `git push origin main`
-2. Add more endpoint wrappers (rates, SMS, etc.)
-3. Add integration tests with real API
-4. Consider CLI framework upgrade (cobra) if feature set grows
+1. Create empty repository on Forgejo (https://forgejo.o-st.dev)
+2. Push to Forgejo: `git push origin main`
+3. Add more endpoint wrappers (rates, SMS, etc.)
+4. Add integration tests with real API
+5. Consider CLI framework upgrade (cobra) if feature set grows
+
+## Commit History
+
+### v0.1.0 - Initial Release
+- HMAC-SHA1 authentication for Zadarma API
+- Get account balance command
+- Comprehensive auth signing implementation with tests
+- Modular architecture: auth, client, CLI
+- Zero external dependencies
