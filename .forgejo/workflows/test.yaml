@@ -22,7 +22,7 @@ jobs:
           cache: true
       
       - name: golangci-lint
-        uses: https://github.com/golangci/golangci-lint-action@v7
+        uses: https://github.com/golangci/golangci-lint-action@v9
         with:
           version: v2.0
       
