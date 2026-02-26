@@ -23,8 +23,6 @@ jobs:
       
       - name: golangci-lint
         uses: https://github.com/golangci/golangci-lint-action@v9
-        with:
-          version: v2.0
       
       - name: Run tests
         run: go test ./... -v
