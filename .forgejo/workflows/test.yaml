@@ -1,0 +1,32 @@
+name: Test & Lint
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - '**'
+
+jobs:
+  test:
+    runs-on: linux
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@latest
+        with:
+          version: latest
+
+      - name: Run tests
+        run: go test ./... -v
+
+      - name: Build binary
+        run: go build -o zadarma-test ./cmd/zadarma
