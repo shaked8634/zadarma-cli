@@ -57,6 +57,7 @@ func main() {
 	rootCmd.AddCommand(commands.NewDIDCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewSMSCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewPBXCmd(clientFactory))
+	rootCmd.AddCommand(commands.NewStatisticsCmd(clientFactory))
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
