@@ -35,4 +35,4 @@ jobs:
       - name: Build binary
         run: |
           ls -R
-          go build -v -o zadarma-test ./cmd/zadarma
+          go build -v -o /tmp/zadarma-test ./cmd/zadarma
