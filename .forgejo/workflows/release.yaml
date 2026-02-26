@@ -35,49 +35,11 @@ jobs:
 
       - name: Create release
         id: create_release
-        env:
-          FORGEJO_API_KEY: ${{ secrets.FORGEJO_API_KEY }}
-        run: |
-          REPO="${GITHUB_REPOSITORY}"
-          OWNER="${REPO%/*}"
-          REPO_NAME="${REPO#*/}"
-          VERSION="${GITHUB_REF#refs/tags/}"
-          
-          # Get the instance URL from CI environment
-          FORGEJO_URL="${GITHUB_SERVER_URL}"
-          
-          # Create release via Forgejo API
-          RESPONSE=$(curl -s -X POST \
-            -H "Authorization: token ${FORGEJO_API_KEY}" \
-            -H "Content-Type: application/json" \
-            "${FORGEJO_URL}/api/v1/repos/${OWNER}/${REPO_NAME}/releases" \
-            -d "{
-              \"tag_name\": \"${VERSION}\",
-              \"name\": \"Release ${VERSION}\",
-              \"body\": \"Release ${VERSION} - zadarma-cli binary for linux/amd64\",
-              \"draft\": false,
-              \"prerelease\": false
-            }")
-          
-          RELEASE_ID=$(echo "$RESPONSE" | grep -o '"id":[0-9]*' | head -1 | cut -d':' -f2)
-          echo "RELEASE_ID=${RELEASE_ID}" >> $GITHUB_OUTPUT
-          echo "Release created with ID: ${RELEASE_ID}"
-
-      - name: Upload release asset
-        env:
-          FORGEJO_API_KEY: ${{ secrets.FORGEJO_API_KEY }}
-          RELEASE_ID: ${{ steps.create_release.outputs.RELEASE_ID }}
-        run: |
-          REPO="${GITHUB_REPOSITORY}"
-          OWNER="${REPO%/*}"
-          REPO_NAME="${REPO#*/}"
-          VERSION="${GITHUB_REF#refs/tags/}"
-          FORGEJO_URL="${GITHUB_SERVER_URL}"
-          
-          # Upload binary as release asset
-          curl -s -X POST \
-            -H "Authorization: token ${FORGEJO_API_KEY}" \
-            -F "attachment=@zadarma-linux-amd64" \
-            "${FORGEJO_URL}/api/v1/repos/${OWNER}/${REPO_NAME}/releases/${RELEASE_ID}/assets"
-          
-          echo "Binary uploaded successfully"
+        uses: https://code.forgejo.org/forgejo/release-action@v1
+        with:
+          direction: upload
+          release-dir: .
+          files: zadarma-linux-amd64
+          tag-name: ${{ steps.version.outputs.VERSION }}
+          release-name: "Release ${{ steps.version.outputs.VERSION }}"
+          release-note: "Release ${{ steps.version.outputs.VERSION }} - zadarma-cli binary for linux/amd64"
