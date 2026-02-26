@@ -36,4 +36,4 @@ jobs:
         run: |
           pwd
           find . -maxdepth 3 -not -path '*/.*'
-          go build -v -o /tmp/zadarma-test ./...
+          go build -v -o /tmp/zadarma-cli ./cmd/zadarma
