@@ -27,18 +27,14 @@ jobs:
 
       - name: Build binary (linux/amd64)
         run: |
-          GOOS=linux GOARCH=amd64 go build -v -o zadarma-linux-amd64 ./cmd/zadarma
-
-      - name: Extract version from tag
-        id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          mkdir -p dist
+          GOOS=linux GOARCH=amd64 go build -v -o dist/zadarma-linux-amd64 ./cmd/zadarma
 
       - name: Create release
-        id: create_release
-        uses: https://code.forgejo.org/forgejo/release-action@v1
+        uses: actions/forgejo-release@v2.6.0
         with:
-          files: |
-            zadarma-linux-amd64
-          tag-name: ${{ steps.version.outputs.VERSION }}
-          release-name: "Release ${{ steps.version.outputs.VERSION }}"
-          release-note: "Release ${{ steps.version.outputs.VERSION }} - zadarma-cli binary for linux/amd64"
+          direction: upload
+          tag: ${{ github.ref_name }}
+          release-dir: dist
+          release-notes: "Release ${{ github.ref_name }} - zadarma-cli binary for linux/amd64"
+          override: true
