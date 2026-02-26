@@ -38,3 +38,9 @@ jobs:
           release-dir: dist
           release-notes: "Release ${{ github.ref_name }} - zadarma-cli binary for linux/amd64"
           override: true
+
+      - name: Debug release assets
+        run: |
+          ls -R dist/
+          echo "Release ID and asset upload check (manual fallback)"
+          # We'll see the logs from the forgejo-release action above to confirm upload
