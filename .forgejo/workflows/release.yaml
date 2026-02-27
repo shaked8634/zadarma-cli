@@ -25,7 +25,7 @@ jobs:
       - name: Run tests
         run: go test ./...
 
-      - name: Build binary (linux/amd64)
+      - name: Build binary
         run: |
           mkdir -p dist/release
           GOOS=linux GOARCH=amd64 go build -v -o dist/release/zadarma-linux-amd64 ./cmd/zadarma
@@ -41,3 +41,4 @@ jobs:
           tag: ${{ forge.ref_name }}
           release-dir: dist/release
           release-notes-file: release-notes/${{ forge.ref_name }}.md
+          override: true
