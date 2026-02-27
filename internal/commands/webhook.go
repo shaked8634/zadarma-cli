@@ -64,7 +64,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 			http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 				// Handle Zadarma verification (zd_echo)
 				if echo := r.URL.Query().Get("zd_echo"); echo != "" {
-					fmt.Fprintf(w, echo)
+					fmt.Fprint(w, echo)
 					fmt.Printf("\n[VERIFICATION] Responded to zd_echo: %s\n", echo)
 					return
 				}

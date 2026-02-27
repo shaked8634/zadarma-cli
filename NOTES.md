@@ -189,6 +189,7 @@ git push -u origin main
 - Tests run on every push to main
 - Releases only trigger on explicit tag push (not on commits)
 - Use `actions/forgejo-release@v2.11.1` for Forgejo releases
+- **Always verify CI success after push or release** — check Forgejo Actions before moving on
 
 ### Files to Keep Out of Git
 - `dist/` - build artifacts

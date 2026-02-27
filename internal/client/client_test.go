@@ -25,7 +25,7 @@ func TestGetBalance(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret")
+	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
 	balance, currency, err := client.GetBalance()
@@ -61,7 +61,7 @@ func TestGetSIPs(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret")
+	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
 	sips, err := client.GetSIPs()
@@ -97,7 +97,7 @@ func TestGetDIDs(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret")
+	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
 	dids, err := client.GetDIDs()
@@ -143,7 +143,7 @@ func TestSendSMS(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret")
+	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
 	result, err := client.SendSMS("+14155555555", "Hello World")
@@ -176,7 +176,7 @@ func TestGetPBXInfo(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret")
+	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
 	pbxInfo, err := client.GetPBXInfo()

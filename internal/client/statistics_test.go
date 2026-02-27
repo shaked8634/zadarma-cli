@@ -24,7 +24,7 @@ func TestGetStatistics(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret")
+	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
 	stats, err := client.GetStatistics(nil)
