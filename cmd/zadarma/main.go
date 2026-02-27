@@ -9,7 +9,7 @@ import (
 	"github.com/zadarma/zadarma-cli/internal/commands"
 )
 
-const Version = "0.2.1"
+const Version = "0.0.3"
 
 var (
 	apiKey     string
