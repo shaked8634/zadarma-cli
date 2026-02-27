@@ -35,7 +35,7 @@ func NewDIDCmd(factory ClientFactory) *cobra.Command {
 					fmt.Println(string(out))
 				} else {
 					for _, did := range dids {
-						fmt.Printf("DID: %s (Type: %s)\n", did["number"], did["type"])
+						fmt.Printf("%s (%s)\n", did["number"], did["type"])
 					}
 				}
 				return nil

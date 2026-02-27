@@ -27,7 +27,7 @@ export ZADARMA_API_SECRET="your_api_secret"
 ### 2. Check your balance
 
 ```bash
-./zadarma balance
+zadarma balance
 ```
 
 ## Common Use Cases
@@ -36,42 +36,30 @@ export ZADARMA_API_SECRET="your_api_secret"
 
 **Step 1: Find your phone number**
 ```bash
-./zadarma did list
+zadarma did list
 ```
 Output:
 ```
-DID: +14155551234 (Type: mobile)
-DID: +442071234567 (Type: landline)
++14155551234 (mobile)
++442071234567 (landline)
 ```
 
 **Step 2: Send the SMS**
 ```bash
-./zadarma sms send --phone "+14155559999" --message "Hello from Zadarma CLI!"
+zadarma sms send --phone "+14155559999" --message "Hello from Zadarma CLI!"
 ```
 
 ### Check account balance
 
 ```bash
-./zadarma balance
+zadarma balance
 # Balance: 123.45 USD
 ```
 
 ### List your SIP accounts
 
 ```bash
-./zadarma sip list
-```
-
-### Debug API requests
-
-```bash
-./zadarma -d did list
-```
-Shows:
-```
-[DEBUG] Request: GET https://api.zadarma.com/v1/did/
-[DEBUG] Authorization: 1c64dee7ee76...
-[DEBUG] Response: HTTP 200 (523 bytes)
+zadarma sip list
 ```
 
 ## Commands
@@ -80,7 +68,7 @@ Shows:
 |---------|-------------|
 | `balance` | Get account balance |
 | `sip list` | List SIP accounts |
-| `did list` | List phone numbers (DIDs) |
+| `did list` | List phone numbers |
 | `sms send --phone <num> --message <text>` | Send SMS |
 | `pbx info` | Get PBX configuration |
 | `statistics` | Get call statistics |
@@ -101,12 +89,6 @@ Shows:
 ## API Documentation
 
 https://zadarma.com/en/support/api/
-
-## Testing
-
-```bash
-go test ./...
-```
 
 ## License
 
