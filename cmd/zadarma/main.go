@@ -15,6 +15,7 @@ var (
 	apiKey     string
 	apiSecret  string
 	jsonOutput bool
+	debug      bool
 )
 
 func main() {
@@ -45,10 +46,11 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&apiKey, "key", "k", "", "Zadarma API key")
 	rootCmd.PersistentFlags().StringVarP(&apiSecret, "secret", "s", "", "Zadarma API secret")
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output in JSON format")
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
 
 	// Create client factory that commands will use
 	clientFactory := func() *client.Client {
-		return client.NewClient(apiKey, apiSecret)
+		return client.NewClient(apiKey, apiSecret, debug)
 	}
 
 	// Add subcommands

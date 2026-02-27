@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/zadarma/zadarma-cli/internal/auth"
 )
@@ -20,14 +21,23 @@ type Client struct {
 	baseURL string
 	signer  *auth.Signer
 	http    *http.Client
+	debug   bool
 }
 
 // NewClient creates a new Zadarma API client.
-func NewClient(apiKey, apiSecret string) *Client {
+func NewClient(apiKey, apiSecret string, debug bool) *Client {
 	return &Client{
 		baseURL: BaseURL + APIVersion,
 		signer:  auth.NewSigner(apiKey, apiSecret),
 		http:    &http.Client{},
+		debug:   debug,
+	}
+}
+
+// debugPrint prints debug messages if debug mode is enabled.
+func (c *Client) debugPrint(format string, args ...interface{}) {
+	if c.debug {
+		fmt.Fprintf(os.Stderr, "[DEBUG] "+format+"\n", args...)
 	}
 }
 
@@ -199,6 +209,8 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		fullURL = fullURL + "?" + params.Encode()
 	}
 
+	c.debugPrint("Request: %s %s", httpMethod, fullURL)
+
 	// Create request
 	req, err := http.NewRequest(httpMethod, fullURL, body)
 	if err != nil {
@@ -209,6 +221,8 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 	authHeader := c.signer.AuthHeader(apiMethod, params)
 	req.Header.Set("Authorization", authHeader)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	c.debugPrint("Authorization: %s", authHeader[:30]+"...")
 
 	// Execute request
 	resp, err := c.http.Do(req)
@@ -225,8 +239,11 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to read response: %w", err)
 	}
 
+	c.debugPrint("Response: HTTP %d (%d bytes)", resp.StatusCode, len(respBody))
+
 	// Check HTTP status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		c.debugPrint("Error response: %s", string(respBody))
 		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(respBody))
 	}
 
@@ -235,5 +252,6 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
+	c.debugPrint("Parsed response successfully")
 	return nil
 }
