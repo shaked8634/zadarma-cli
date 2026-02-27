@@ -58,6 +58,7 @@ func main() {
 	rootCmd.AddCommand(commands.NewSMSCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewPBXCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewStatisticsCmd(clientFactory))
+	rootCmd.AddCommand(commands.NewWebhookCmd(clientFactory))
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)

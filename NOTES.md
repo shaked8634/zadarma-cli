@@ -168,3 +168,28 @@ git push -u origin main
 - Comprehensive auth signing implementation with tests
 - Modular architecture: auth, client, CLI
 - Zero external dependencies
+
+## Release Conventions
+
+### Versioning
+- Use semantic versioning: `v0.0.1`, `v0.0.2`, `v0.1.0`, etc.
+- Tags should be sequential and consistent
+- **Never skip versions** - if v0.0.1 exists, next is v0.0.2, not v0.2.1
+
+### Release Process
+- **Releases are manual and intentional** - do NOT create a release after every change
+- Release only when there's a meaningful milestone or user-facing change
+- Before releasing:
+  1. Update version in code if needed
+  2. Ensure CI passes
+  3. Update release notes in workflow
+  4. Push tag manually
+
+### CI/CD
+- Tests run on every push to main
+- Releases only trigger on explicit tag push (not on commits)
+- Use `actions/forgejo-release@v2.11.1` for Forgejo releases
+
+### Files to Keep Out of Git
+- `dist/` - build artifacts
+- Binary files (zadarma, zadarma-test) - built by CI

@@ -146,6 +146,41 @@ func (c *Client) GetPBXInfo() (map[string]interface{}, error) {
 	return resp.Data, nil
 }
 
+// SetWebhook sets a notification URL for events.
+func (c *Client) SetWebhook(urlStr string) (map[string]interface{}, error) {
+	method := "/pbx/webhooks/url/"
+	params := url.Values{}
+	params.Set("url", urlStr)
+
+	var resp struct {
+		Status string                 `json:"status"`
+		Data   map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Post(method, params, nil, &resp); err != nil {
+		return nil, err
+	}
+
+	return resp.Data, nil
+}
+
+// GetWebhook returns the current notification URL.
+func (c *Client) GetWebhook() (map[string]interface{}, error) {
+	method := "/pbx/webhooks/url/"
+	params := url.Values{}
+
+	var resp struct {
+		Status string                 `json:"status"`
+		Data   map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	return resp.Data, nil
+}
+
 // Get performs a GET request to the API.
 func (c *Client) Get(method string, params url.Values, result interface{}) error {
 	return c.request("GET", method, params, nil, result)
