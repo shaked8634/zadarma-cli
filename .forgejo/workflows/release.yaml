@@ -27,19 +27,18 @@ jobs:
 
       - name: Build binary (linux/amd64)
         run: |
-          mkdir -p dist
-          GOOS=linux GOARCH=amd64 go build -v -o dist/zadarma-linux-amd64 ./cmd/zadarma
-          ls -la dist/
+          mkdir -p dist/release
+          GOOS=linux GOARCH=amd64 go build -v -o dist/release/zadarma-linux-amd64 ./cmd/zadarma
+          ls -la dist/release/
 
       - name: Create release
         id: create_release
-        uses: https://code.forgejo.org/forgejo/release-action@v1.4.1
+        uses: actions/forgejo-release@v2.11.1
         with:
           direction: upload
-          release-dir: dist
-          files: zadarma-linux-amd64
-          tag-name: ${{ github.ref_name }}
-          release-name: "Release ${{ github.ref_name }}"
-          release-note: "Release ${{ github.ref_name }} - zadarma-cli binary for linux/amd64"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          url: https://forgejo.o-st.dev
+          repo: voidclaw/zadarma-cli
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v0.0.2
+          release-dir: dist/release
+          release-notes: "v0.0.2 - Maintenance release with version correction and workflow improvements"
