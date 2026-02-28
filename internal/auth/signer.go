@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
+	"os"
 	"sort"
 	"strings"
 )
@@ -36,20 +37,34 @@ func NewSigner(apiKey, apiSecret string) *Signer {
 func (s *Signer) Sign(method string, params url.Values) string {
 	// Step 1 & 2: Build alphabetically-sorted query string
 	paramsStr := s.buildQueryString(params)
+	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] paramsStr=%q\n", paramsStr)
 
 	// Step 3: Calculate MD5 of params string
 	paramsMD5 := s.md5Hex(paramsStr)
+	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] md5Hex=%q\n", paramsMD5)
 
 	// Concatenate: method + paramsStr + md5(paramsStr)
 	signString := method + paramsStr + paramsMD5
+	logStr := signString
+	if len(logStr) > 50 {
+		logStr = logStr[:50]
+	}
+	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] signString(first 50)=%q\n", logStr)
 
 	// Step 4: HMAC-SHA1 with secret key
 	hmacResult := s.hmacSHA1(signString)
 
 	// Step 5: Base64 encode the hex-encoded HMAC (matches Python api.py)
 	hashHex := hex.EncodeToString(hmacResult)
+	logHex := hashHex
+	if len(logHex) > 20 {
+		logHex = logHex[:20]
+	}
+	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] hashHex[:20]=%q\n", logHex)
+	
 	bts := []byte(hashHex)
 	signature := base64.StdEncoding.EncodeToString(bts)
+	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] final_sig=%q\n", signature)
 
 	return signature
 }
