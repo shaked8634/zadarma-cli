@@ -46,8 +46,10 @@ func (s *Signer) Sign(method string, params url.Values) string {
 	// Step 4: HMAC-SHA1 with secret key
 	hmacResult := s.hmacSHA1(signString)
 
-	// Step 5: Base64 encode
-	signature := base64.StdEncoding.EncodeToString(hmacResult)
+	// Step 5: Base64 encode the hex-encoded HMAC (matches Python api.py)
+	hashHex := hex.EncodeToString(hmacResult)
+	bts := []byte(hashHex)
+	signature := base64.StdEncoding.EncodeToString(bts)
 
 	return signature
 }

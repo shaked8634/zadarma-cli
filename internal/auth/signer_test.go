@@ -14,8 +14,8 @@ func TestSignerEmpty(t *testing.T) {
 
 	signature := signer.Sign(method, params)
 
-	// Expected signature (computed manually following the algorithm)
-	expected := "rhSjhy87PyCS8HamPv6b1t199EA="
+	// Expected signature (computed following Python api.py algorithm: base64(hex(HMAC-SHA1)))
+	expected := "YWUxNGEzODcyZjNiM2YyMDkyZjA3NmE2M2VmZTliZDZkZDdkZjQ0MA=="
 
 	if signature != expected {
 		t.Errorf("Expected signature %q, got %q", expected, signature)
