@@ -21,7 +21,7 @@ func NewDIDCmd(factory ClientFactory) *cobra.Command {
 			Use:   "list",
 			Short: "List phone numbers",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				jsonOutput, _ := cmd.Flags().GetBool("json")
+				outputFormat, _ := cmd.Root().PersistentFlags().GetString("output")
 				c := factory()
 
 				dids, err := c.GetDIDs()
@@ -30,7 +30,7 @@ func NewDIDCmd(factory ClientFactory) *cobra.Command {
 					os.Exit(1)
 				}
 
-				if jsonOutput {
+				if outputFormat == "json" {
 					out, _ := json.MarshalIndent(dids, "", "  ")
 					fmt.Println(string(out))
 				} else {

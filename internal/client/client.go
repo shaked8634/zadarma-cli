@@ -134,6 +134,72 @@ func (c *Client) GetDIDs() ([]map[string]interface{}, error) {
 	return resp.Data, nil
 }
 
+// GetDirectCountries lists available direct number countries.
+func (c *Client) GetDirectCountries() ([]map[string]interface{}, error) {
+	method := "/direct_numbers/countries/"
+	params := url.Values{}
+
+	var resp struct {
+		Status string                   `json:"status"`
+		Data   []map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
+// GetDirectCountry lists destinations for a specific country.
+func (c *Client) GetDirectCountry(country string) ([]map[string]interface{}, error) {
+	method := "/direct_numbers/country/"
+	params := url.Values{}
+	params.Set("country", country)
+
+	var resp struct {
+		Status string                   `json:"status"`
+		Data   []map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
+// GetDirectNumber returns information about a direct number.
+func (c *Client) GetDirectNumber(type_, number string) (map[string]interface{}, error) {
+	method := "/direct_numbers/number/"
+	params := url.Values{}
+	params.Set("type", type_)
+	params.Set("number", number)
+
+	var resp struct {
+		Status string                 `json:"status"`
+		Data   map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
 // SendSMS sends an SMS message.
 func (c *Client) SendSMS(phoneNumber, message string) (map[string]interface{}, error) {
 	method := "/sms/"

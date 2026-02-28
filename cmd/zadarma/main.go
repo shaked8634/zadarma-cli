@@ -12,10 +12,10 @@ import (
 const Version = "0.0.5"
 
 var (
-	apiKey     string
-	apiSecret  string
-	jsonOutput bool
-	debug      bool
+	apiKey       string
+	apiSecret    string
+	outputFormat string
+	debug        bool
 )
 
 func main() {
@@ -25,7 +25,6 @@ func main() {
 		Long:    "zadarma-cli - A CLI tool for interacting with the Zadarma VoIP API",
 		Version: Version,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
-			// Load from environment if not provided via flags
 			if apiKey == "" {
 				apiKey = os.Getenv("ZADARMA_API_KEY")
 			}
@@ -33,7 +32,6 @@ func main() {
 				apiSecret = os.Getenv("ZADARMA_API_SECRET")
 			}
 
-			// Validate credentials early
 			if apiKey == "" || apiSecret == "" {
 				fmt.Fprintf(os.Stderr, "Error: ZADARMA_API_KEY and ZADARMA_API_SECRET must be set\n")
 				fmt.Fprintf(os.Stderr, "Use --key and --secret flags or set environment variables\n")
@@ -42,18 +40,15 @@ func main() {
 		},
 	}
 
-	// Global flags
 	rootCmd.PersistentFlags().StringVarP(&apiKey, "key", "k", "", "Zadarma API key")
 	rootCmd.PersistentFlags().StringVarP(&apiSecret, "secret", "s", "", "Zadarma API secret")
-	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output in JSON format")
+	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format (text|json)")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
 
-	// Create client factory that commands will use
 	clientFactory := func() *client.Client {
 		return client.NewClient(apiKey, apiSecret, debug)
 	}
 
-	// Add subcommands
 	rootCmd.AddCommand(commands.NewBalanceCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewSIPCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewDIDCmd(clientFactory))
@@ -61,6 +56,7 @@ func main() {
 	rootCmd.AddCommand(commands.NewPBXCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewStatisticsCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewWebhookCmd(clientFactory))
+	rootCmd.AddCommand(commands.NewDirectCmd(clientFactory))
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
