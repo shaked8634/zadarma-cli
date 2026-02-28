@@ -203,6 +203,14 @@ func (c *Client) Post(method string, params url.Values, body io.Reader, result i
 
 // request performs an HTTP request with proper Zadarma authentication.
 func (c *Client) request(httpMethod, apiMethod string, params url.Values, body io.Reader, result interface{}) error {
+	// Initialize params if nil
+	if params == nil {
+		params = url.Values{}
+	}
+
+	// Add format=json to params before signing (matches Python API behavior)
+	params.Set("format", "json")
+
 	// Build full URL
 	fullURL := c.baseURL + apiMethod
 	if len(params) > 0 {
@@ -217,12 +225,14 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// Sign request
-	authHeader := c.signer.AuthHeader(apiMethod, params)
+	// Sign request with full path including /v1 (format=json is already in params)
+	// Extract version from baseURL to reconstruct full path for signing
+	signingPath := APIVersion + apiMethod
+	authHeader := c.signer.AuthHeader(signingPath, params)
 	req.Header.Set("Authorization", authHeader)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	c.debugPrint("Authorization: %s", authHeader[:30]+"...")
+	c.debugPrint("Authorization: %s", authHeader)
 
 	// Execute request
 	resp, err := c.http.Do(req)
