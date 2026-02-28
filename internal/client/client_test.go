@@ -81,8 +81,8 @@ func TestGetSIPs(t *testing.T) {
 // TestGetDIDs tests the GetDIDs endpoint.
 func TestGetDIDs(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/did/" {
-			t.Errorf("Expected path /v1/did/, got %s", r.URL.Path)
+		if r.URL.Path != "/v1/info/did/" {
+			t.Errorf("Expected path /v1/info/did/, got %s", r.URL.Path)
 		}
 
 		w.Header().Set("Content-Type", "application/json")

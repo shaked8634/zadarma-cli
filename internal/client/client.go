@@ -93,7 +93,7 @@ func (c *Client) GetSIPs() ([]map[string]interface{}, error) {
 
 // GetDIDs fetches all phone numbers (DIDs).
 func (c *Client) GetDIDs() ([]map[string]interface{}, error) {
-	method := "/did/"
+	method := "/info/did/"
 	params := url.Values{}
 
 	var resp struct {
