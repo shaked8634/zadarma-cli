@@ -41,6 +41,29 @@ func NewSIPCmd(factory ClientFactory) *cobra.Command {
 				return nil
 			},
 		},
+		&cobra.Command{
+			Use:   "status <ID>",
+			Short: "Get SIP account status",
+			Args:  cobra.ExactArgs(1),
+			RunE: func(cmd *cobra.Command, args []string) error {
+				c := factory()
+				id := args[0]
+
+				isOnline, err := c.GetSIPStatus(id)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+					os.Exit(1)
+				}
+
+				status := "offline"
+				if isOnline {
+					status = "online"
+				}
+
+				fmt.Printf("SIP %s is %s\n", id, status)
+				return nil
+			},
+		},
 	)
 
 	return cmd

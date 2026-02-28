@@ -91,6 +91,28 @@ func (c *Client) GetSIPs() ([]map[string]interface{}, error) {
 	return resp.Data, nil
 }
 
+// GetSIPStatus fetches the status of a specific SIP account.
+func (c *Client) GetSIPStatus(id string) (isOnline bool, err error) {
+	method := "/sip/" + id + "/status/"
+	params := url.Values{}
+
+	var resp struct {
+		Status   string `json:"status"`
+		SIP      string `json:"sip"`
+		IsOnline string `json:"is_online"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return false, err
+	}
+
+	if resp.Status != "success" {
+		return false, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.IsOnline == "true", nil
+}
+
 // GetDIDs fetches all phone numbers (DIDs).
 func (c *Client) GetDIDs() ([]map[string]interface{}, error) {
 	method := "/info/did/"
