@@ -36,34 +36,23 @@ func NewSigner(apiKey, apiSecret string) *Signer {
 func (s *Signer) Sign(method string, params url.Values) string {
 	// Step 1 & 2: Build alphabetically-sorted query string
 	paramsStr := s.buildQueryString(params)
-	log.Debugf("paramsStr=%q", paramsStr)
 
 	// Step 3: Calculate MD5 of params string
 	paramsMD5 := s.md5Hex(paramsStr)
-	log.Debugf("md5Hex=%q", paramsMD5)
 
 	// Concatenate: method + paramsStr + md5(paramsStr)
 	signString := method + paramsStr + paramsMD5
-	logStr := signString
-	if len(logStr) > 50 {
-		logStr = logStr[:50]
-	}
-	log.Debugf("signString(first 50)=%q", logStr)
+
+	log.Debugf("fullSignString=%q", signString)
 
 	// Step 4: HMAC-SHA1 with secret key
 	hmacResult := s.hmacSHA1(signString)
 
 	// Step 5: Base64 encode the hex-encoded HMAC (matches Python api.py)
 	hashHex := hex.EncodeToString(hmacResult)
-	logHex := hashHex
-	if len(logHex) > 20 {
-		logHex = logHex[:20]
-	}
-	log.Debugf("hashHex[:20]=%q", logHex)
-
 	bts := []byte(hashHex)
 	signature := base64.StdEncoding.EncodeToString(bts)
-	log.Debugf("final_sig=%q", signature)
+	log.Debugf("signature=%q", signature)
 
 	return signature
 }

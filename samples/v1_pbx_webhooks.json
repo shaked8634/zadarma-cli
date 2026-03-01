@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "url": "",
+  "hooks": {
+    "number_lookup": "true",
+    "call_tracking": "true",
+    "sms": "true",
+    "speech_recognition": "true",
+    "document": "true"
+  }
+}

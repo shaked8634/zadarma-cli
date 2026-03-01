@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "sips": [
+    {
+      "id": "649222",
+      "display_name": "SIP",
+      "lines": 3
+    }
+  ],
+  "left": 5
+}

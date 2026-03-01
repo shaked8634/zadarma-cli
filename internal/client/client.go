@@ -66,106 +66,6 @@ func (c *Client) GetBalance() (balance interface{}, currency string, err error) 
 	return resp.Balance, resp.Currency, nil
 }
 
-// GetSIPs fetches all SIP accounts.
-func (c *Client) GetSIPs() ([]map[string]interface{}, error) {
-	method := "/sip/"
-	params := url.Values{}
-
-	var resp struct {
-		Status string                   `json:"status"`
-		Data   []map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	return resp.Data, nil
-}
-
-// GetSIPStatus fetches the status of a specific SIP account.
-func (c *Client) GetSIPStatus(id string) (isOnline bool, err error) {
-	method := "/sip/" + id + "/status/"
-	params := url.Values{}
-
-	var resp struct {
-		Status   string `json:"status"`
-		SIP      string `json:"sip"`
-		IsOnline string `json:"is_online"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return false, err
-	}
-
-	if resp.Status != "success" {
-		return false, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	return resp.IsOnline == "true", nil
-}
-
-// GetDirectNumbers fetches phone numbers (DIDs) owned by the user.
-// If numbers is empty, it fetches all numbers via GET /v1/direct_numbers/
-// If numbers are provided, filters the results to only those numbers
-func (c *Client) GetDirectNumbers(numbers ...string) ([]map[string]interface{}, error) {
-	method := "/direct_numbers/"
-	params := url.Values{}
-
-	var resp struct {
-		Status string                   `json:"status"`
-		Info   []map[string]interface{} `json:"info"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	// If no specific numbers requested, return all
-	if len(numbers) == 0 {
-		return resp.Info, nil
-	}
-
-	// Filter to requested numbers only
-	numberSet := make(map[string]bool)
-	for _, num := range numbers {
-		numberSet[num] = true
-	}
-
-	var result []map[string]interface{}
-	for _, dn := range resp.Info {
-		if num, ok := dn["number"].(string); ok && numberSet[num] {
-			result = append(result, dn)
-		}
-	}
-
-	// Verify all requested numbers were found
-	if len(result) != len(numbers) {
-		foundNumbers := make(map[string]bool)
-		for _, dn := range result {
-			if num, ok := dn["number"].(string); ok {
-				foundNumbers[num] = true
-			}
-		}
-		for _, num := range numbers {
-			if !foundNumbers[num] {
-				log.Debugf("Requested number not found: %s", num)
-			}
-		}
-		return result, fmt.Errorf("not all requested numbers found")
-	}
-
-	return result, nil
-}
-
 // GetPrice returns the price information for a call to the given number.
 // API: GET /v1/info/price/?number=<phone>
 func (c *Client) GetPrice(number string) (map[string]interface{}, error) {
@@ -189,208 +89,7 @@ func (c *Client) GetPrice(number string) (map[string]interface{}, error) {
 	return resp.Data, nil
 }
 
-// GetDirectCountries lists available direct number countries.
-func (c *Client) GetDirectCountries() ([]map[string]interface{}, error) {
-	method := "/direct_numbers/countries/"
-	params := url.Values{}
-
-	var resp struct {
-		Status string                   `json:"status"`
-		Data   []map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	return resp.Data, nil
-}
-
-// GetDirectCountry lists destinations for a specific country.
-func (c *Client) GetDirectCountry(country string) ([]map[string]interface{}, error) {
-	method := "/direct_numbers/country/"
-	params := url.Values{}
-	params.Set("country", country)
-
-	var resp struct {
-		Status string                   `json:"status"`
-		Data   []map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	return resp.Data, nil
-}
-
-// GetDirectNumber returns information about a direct number.
-func (c *Client) GetDirectNumber(type_, number string) (map[string]interface{}, error) {
-	method := "/direct_numbers/number/"
-	params := url.Values{}
-	params.Set("type", type_)
-	params.Set("number", number)
-
-	var resp struct {
-		Status string                 `json:"status"`
-		Data   map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	return resp.Data, nil
-}
-
-// SendSMS sends an SMS message.
-func (c *Client) SendSMS(phoneNumber, message, sender string) (map[string]interface{}, error) {
-	method := "/sms/send/"
-	params := url.Values{}
-	params.Set("number", phoneNumber)
-	params.Set("message", message)
-	if sender != "" {
-		params.Set("caller_id", sender)
-	}
-
-	// Use a generic map to accommodate different possible API shapes
-	var raw map[string]any
-	if err := c.Post(method, params, nil, &raw); err != nil {
-		return nil, err
-	}
-
-	status, _ := raw["status"].(string)
-	if status != "success" {
-		if status == "" {
-			status = "unknown"
-		}
-		return nil, fmt.Errorf("API error: %s", status)
-	}
-
-	// Prefer nested data map if present; otherwise, normalize common top-level fields
-	out := map[string]any{}
-	if d, ok := raw["data"].(map[string]any); ok && d != nil {
-		out = d
-	}
-	// Normalize id field
-	if _, ok := out["id"]; !ok || out["id"] == nil {
-		if v, ok := raw["id"]; ok {
-			out["id"] = v
-		} else if v, ok := raw["message_id"]; ok {
-			out["id"] = v
-		} else if v, ok := raw["sms_id"]; ok {
-			out["id"] = v
-		}
-	}
-	// Normalize status field for SMS send result if present at alternative keys
-	if _, ok := out["status"]; !ok || out["status"] == nil {
-		if v, ok := raw["sms_status"]; ok {
-			out["status"] = v
-		} else if v, ok := raw["message_status"]; ok {
-			out["status"] = v
-		} else if v, ok := raw["status"]; ok { // fallback to overall status
-			out["status"] = v
-		}
-	}
-
-	return out, nil
-}
-
-// GetSMSSenders returns the list of valid SMS senders to a given number.
-func (c *Client) GetSMSSenders(phones string) ([]map[string]interface{}, error) {
-	method := "/sms/senderid/"
-	params := url.Values{}
-	params.Set("phones", phones)
-
-	var resp struct {
-		Status string                   `json:"status"`
-		Data   []map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	return resp.Data, nil
-}
-
-// GetPBXInfo fetches PBX configuration information. If pbxID or numbers are provided they are passed as query parameters.
-func (c *Client) GetPBXInfo(pbxID, numbers string) (map[string]interface{}, error) {
-	method := "/pbx/internal/"
-	params := url.Values{}
-	if pbxID != "" {
-		params.Set("pbx_id", pbxID)
-	}
-	if numbers != "" {
-		params.Set("numbers", numbers)
-	}
-
-	var resp struct {
-		Status string                 `json:"status"`
-		Data   map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
-	}
-
-	return resp.Data, nil
-}
-
-// SetWebhook sets a notification URL for events.
-func (c *Client) SetWebhook(urlStr string) (map[string]interface{}, error) {
-	method := "/pbx/internal/webhooks/url/"
-	params := url.Values{}
-	params.Set("url", urlStr)
-
-	var resp struct {
-		Status string                 `json:"status"`
-		Data   map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Post(method, params, nil, &resp); err != nil {
-		return nil, err
-	}
-
-	return resp.Data, nil
-}
-
-// GetWebhook returns the current notification URL.
-func (c *Client) GetWebhook() (map[string]interface{}, error) {
-	method := "/pbx/internal/webhooks/url/"
-	params := url.Values{}
-
-	var resp struct {
-		Status string                 `json:"status"`
-		Data   map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
-		return nil, err
-	}
-
-	return resp.Data, nil
-}
+// ...methods moved to dedicated files: sip.go, sms.go, direct_numbers.go, pbx.go, statistics_client.go...
 
 // Get performs a GET request to the API.
 func (c *Client) Get(method string, params url.Values, result interface{}) error {
@@ -409,23 +108,27 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		params = url.Values{}
 	}
 
-	// Do not force format=json globally; callers/commands may add it explicitly if needed.
-
 	// Build URL and (possibly) request body depending on HTTP method
 	fullURL := c.baseURL + apiMethod
 	reqBody := body
+	signingParams := params // params to use for signature
+
 	if httpMethod == http.MethodGet {
 		if len(params) > 0 {
 			fullURL = fullURL + "?" + params.Encode()
 		}
 	} else {
-		// For non-GET methods send params in the body as x-www-form-urlencoded
+		// For non-GET methods send params in the body as x-www-form-urlencoded unless a body is supplied
 		if reqBody == nil && len(params) > 0 {
 			reqBody = strings.NewReader(params.Encode())
+			// Note: For signature, we still use the params (same as GET)
+			// The params go in the body for POST, but are still included in the signature
+			// signingParams remains as params (not empty)
 		}
 	}
 
 	log.Debugf("Request: %s %s", httpMethod, fullURL)
+	log.Debugf("paramsStr=%q", params.Encode())
 
 	// Create request
 	req, err := http.NewRequest(httpMethod, fullURL, reqBody)
@@ -433,17 +136,26 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	// Sign request with full path including /v1 (format=json is already in params)
-	// Extract version from baseURL to reconstruct full path for signing
+	// Sign request with full path including /v1
+	// For POST/PUT with form body, signingParams will be empty (per API spec)
 	signingPath := APIVersion + apiMethod
-	authHeader := c.signer.AuthHeader(signingPath, params)
+	authHeader := c.signer.AuthHeader(signingPath, signingParams)
+	// Correct header name is 'Authorization'
 	req.Header.Set("Authorization", authHeader)
-	// Per docs, POST and PUT must specify Content-Type
+
+	// Content-Type for POST/PUT: always use form-encoded (Zadarma requirement)
 	if httpMethod == http.MethodPost || httpMethod == http.MethodPut {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 
 	log.Debugf("Authorization: %s", authHeader)
+	if reqBody != nil {
+		// Log request body if present
+		if body != nil {
+			// If body was provided, we already logged params above
+			log.Debugf("Request body: %v", body)
+		}
+	}
 
 	// Execute request
 	resp, err := c.http.Do(req)
@@ -460,9 +172,7 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to read response: %w", err)
 	}
 
-	log.Debugf("Response: HTTP %d (%d bytes)", resp.StatusCode, len(respBody))
-	// Per user request, print the full response body
-	log.Debugf("Response body: %s", string(respBody))
+	log.Debugf("Response: HTTP %d (%d bytes). Body: %s", resp.StatusCode, len(respBody), string(respBody))
 
 	// Check HTTP status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {

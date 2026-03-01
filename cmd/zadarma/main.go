@@ -33,8 +33,8 @@ func main() {
 			}
 
 			if apiKey == "" || apiSecret == "" {
-				fmt.Fprintf(os.Stderr, "Error: ZADARMA_API_KEY and ZADARMA_API_SECRET must be set\n")
-				fmt.Fprintf(os.Stderr, "Use --key and --secret flags or set environment variables\n")
+				_, _ = fmt.Fprintf(os.Stderr, "Error: ZADARMA_API_KEY and ZADARMA_API_SECRET must be set\n")
+				_, _ = fmt.Fprintf(os.Stderr, "Use --key and --secret flags or set environment variables\n")
 				os.Exit(1)
 			}
 		},

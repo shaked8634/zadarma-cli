@@ -112,6 +112,130 @@ zadarma-cli sms send --phone <num> --message <msg> [--json]
 zadarma-cli pbx info [--json]
 ```
 
+## CLI Command Naming Convention
+
+To keep the CLI consistent and predictable, we follow a clear pattern:
+
+- Use `list` for commands that return multiple entities (collections).
+- Use `info` for commands that return detailed information about a single entity.
+
+This convention is applied across the CLI. Examples:
+
+```
+zadarma-cli balance [--json]
+zadarma-cli sip list [--json]        # list all SIP accounts
+zadarma-cli sip info <ID> [--json]   # get detailed info for a single SIP account
+zadarma-cli phone list [--json]      # list DID/phone numbers
+zadarma-cli phone countries list     # list available country codes and ISO
+zadarma-cli phone country info <CC>  # get number types for country (CC is ISO 3166-1 alpha-2)
+zadarma-cli pbx info [--json]
+```
+
+Make sure commands are discoverable via `--help` and shell completions.
+
+## Webhook Daemon Mode (SMS)
+
+### Overview
+
+The CLI supports running as a daemon to listen for incoming SMS webhooks from Zadarma. This allows real-time processing
+of incoming messages without polling.
+
+### Usage
+
+Start the SMS webhook daemon:
+
+```bash
+# Text mode (human-readable table format)
+./zadarma-cli sms listen --port 8080
+
+# JSON mode (structured output)
+./zadarma-cli --output json sms listen --port 8080
+
+# Background the daemon to use other CLI commands simultaneously
+./zadarma-cli sms listen --port 8080 &
+./zadarma-cli sms send --phone +1234567890 --message "Hello"
+```
+
+### How It Works
+
+1. **Fetch Current Webhook URL**: On startup, `sms listen` calls the API to fetch and display the currently configured
+   webhook URL.
+2. **Start Local HTTP Server**: Listens on the specified port (default: 8080) for incoming POST requests.
+3. **Handle Zadarma Verification**: Responds to Zadarma's `zd_echo` verification queries.
+4. **Process SMS Events**:
+    - In **text mode**: Prints incoming SMS in a formatted table (FROM, TO, TEXT, TIME).
+    - In **JSON mode**: Prints the raw JSON event data.
+5. **Run as Daemon**: The daemon runs indefinitely until stopped with Ctrl+C. Can be backgrounded with `&` to keep the
+   CLI available for other commands.
+
+### Setup
+
+Before using `sms listen`, you must:
+
+1. **Expose the local port** via ngrok or similar tunnel service:
+   ```bash
+   ngrok http 8080
+   # This gives you a public URL like: https://abc123.ngrok.io
+   ```
+
+2. **Set the webhook URL** via the API:
+   ```bash
+   ./zadarma-cli webhook set https://abc123.ngrok.io
+   # Or use the old command for compatibility:
+   ./zadarma-cli webhook set https://abc123.ngrok.io
+   ```
+
+3. **Verify the webhook** in the Zadarma account dashboard (optional).
+
+4. **Start the daemon**:
+   ```bash
+   ./zadarma-cli sms listen --port 8080
+   ```
+
+### Background Execution
+
+To run the daemon in the background while using other CLI commands:
+
+```bash
+./zadarma-cli sms listen --port 8080 &
+echo $!  # Save the daemon PID
+
+# Now you can use other commands
+./zadarma-cli sms send --phone +1234567890 --message "Hi there"
+
+# When done, stop the daemon
+kill %1  # or kill <PID>
+```
+
+### Output Examples
+
+**Text Mode (default)**:
+
+```
+Current webhook URL: https://abc123.ngrok.io
+Listening for SMS webhooks on port 8080...
+Press Ctrl+C to stop.
+
+--- INCOMING SMS ---
+FROM   +1234567890
+TO     +1987654321
+TEXT   Hello, this is a test
+TIME   1709251234
+-------------------
+```
+
+**JSON Mode** (`--output json`):
+
+```json
+{
+  "event": "SMS",
+  "caller_id": "+1234567890",
+  "caller_did": "+1987654321",
+  "text": "Hello, this is a test",
+  "timestamp": 1709251234
+}
+```
+
 ## Future Enhancements
 
 ### Phase 1 (Complete)
@@ -122,6 +246,7 @@ zadarma-cli pbx info [--json]
 - [x] PBX info retrieval
 - [x] JSON output support (`--json` flag)
 - [x] Cobra-based CLI framework
+- [x] SMS webhook daemon (`sms listen`)
 
 ### Phase 2
 - [ ] DID number details (routing, forwarding)
@@ -129,12 +254,15 @@ zadarma-cli pbx info [--json]
 - [ ] Call rates and pricing
 - [ ] Request callback endpoint
 - [ ] Extension management
+- [ ] Call webhook daemon (incoming call events)
+- [ ] Log file output for daemon mode
 
 ### Phase 3
 - [ ] Piping/STDIN support for bulk operations
 - [ ] Call recording management
 - [ ] PBX statistics and usage reports
 - [ ] Config file support (.zadarma/config)
+- [ ] Systemd service file for daemon mode
 
 ## Testing
 
@@ -268,3 +396,88 @@ git push -u origin main
 ### Files to Keep Out of Git
 - `dist/` - build artifacts
 - Binary files (zadarma, zadarma-test) - built by CI
+
+## Development Workflow
+
+### Code Organization & Separation of Concerns
+
+- **Client Package** (`internal/client/`):
+    - Core HTTP client and request handling in `client.go`
+    - Simple utility methods (GetBalance, GetPrice) remain in `client.go`
+    - Each major feature/command gets a dedicated file:
+        - `sip.go` - SIP account methods
+        - `sms.go` - SMS sending and senders
+        - `direct_numbers.go` - Direct number/DID operations
+        - `pbx.go` - PBX configuration methods
+        - `statistics_client.go` - Statistics API wrapper
+
+- **Commands Package** (`internal/commands/`):
+    - CLI logic and command handlers
+    - One file per command for clarity (e.g., `pbx.go`, `sms.go`, `statistics.go`)
+    - Each command file handles:
+        - Flag/argument parsing
+        - Calling appropriate client methods
+        - Output formatting (text vs JSON)
+
+### Code Quality Standards
+
+After **every change**, you must:
+
+1. **Run linter**: Check code style and best practices
+   ```bash
+   golangci-lint run ./...
+   ```
+   Or if golangci-lint not available, use:
+   ```bash
+   go vet ./...
+   ```
+
+2. **Run formatter**: Ensure consistent code style
+   ```bash
+   go fmt ./...
+   gofmt -s -w .
+   ```
+
+3. **Run tests**: Verify functionality and catch regressions
+   ```bash
+   go test ./...          # Run all tests
+   go test ./... -v       # Verbose output
+   go test -race ./...    # Check for race conditions
+   ```
+
+4. **Build**: Verify the project compiles
+   ```bash
+   go build -o zadarma-cli ./cmd/zadarma
+   ```
+
+### Pre-commit Checklist
+
+Before committing code:
+
+- [ ] All code is formatted (`go fmt ./...`)
+- [ ] Linter passes (`go vet ./...` or `golangci-lint run ./...`)
+- [ ] All tests pass (`go test ./...`)
+- [ ] Project builds successfully (`go build ./...`)
+- [ ] No new compile errors or warnings
+
+### Development Example
+
+```bash
+# Make your code changes...
+git add .
+
+# Format code
+go fmt ./...
+
+# Check for issues
+go vet ./...
+
+# Run tests
+go test ./...
+
+# Build to verify
+go build ./...
+
+# If all pass, commit
+git commit -m "description of changes"
+```

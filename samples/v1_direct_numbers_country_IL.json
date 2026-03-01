@@ -1,0 +1,194 @@
+{
+  "status": "success",
+  "info": [
+    {
+      "id": 3061,
+      "countryCode": "972",
+      "areaCode": "55",
+      "name": "Mobile",
+      "connect_fee": 0,
+      "monthly_fee": 3,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Copy of company registration certificate or passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "true",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 14526,
+      "countryCode": "972",
+      "areaCode": "8",
+      "name": "Beer Sheva",
+      "connect_fee": 0,
+      "monthly_fee": 3,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 633,
+      "countryCode": "972",
+      "areaCode": "4",
+      "name": "Hadera",
+      "connect_fee": 0,
+      "monthly_fee": 3,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 634,
+      "countryCode": "972",
+      "areaCode": "4",
+      "name": "Haifa",
+      "connect_fee": 0,
+      "monthly_fee": 3,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 12823,
+      "countryCode": "972",
+      "areaCode": "8",
+      "name": "Hashfela",
+      "connect_fee": 0,
+      "monthly_fee": 3,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 14527,
+      "countryCode": "972",
+      "areaCode": "2",
+      "name": "Jerusalem",
+      "connect_fee": 0,
+      "monthly_fee": 3,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 1317,
+      "countryCode": "972",
+      "areaCode": "77",
+      "name": "National",
+      "connect_fee": 0,
+      "monthly_fee": 4.5,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 638,
+      "countryCode": "972",
+      "areaCode": "3",
+      "name": "Tel Aviv",
+      "connect_fee": 0,
+      "monthly_fee": 3,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "false",
+      "feature": null,
+      "connect_time": "0"
+    },
+    {
+      "id": 14989,
+      "countryCode": "972",
+      "areaCode": "1809",
+      "name": "Toll-free",
+      "connect_fee": 0,
+      "monthly_fee": 10.5,
+      "currency": "EUR",
+      "restrictions": {
+        "upload": {
+          "passport": "Passport or ID copy (both sides)"
+        },
+        "specify": [
+          "Your current address (city, street, number and postal code)"
+        ]
+      },
+      "receive_sms": "false",
+      "is_toll": "true",
+      "feature": null,
+      "connect_time": "10"
+    }
+  ]
+}

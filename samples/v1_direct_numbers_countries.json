@@ -1,0 +1,545 @@
+{
+  "status": "success",
+  "info": [
+    {
+      "countryCode": "355",
+      "countryCodeIso": "AL",
+      "name": "Albania"
+    },
+    {
+      "countryCode": "244",
+      "countryCodeIso": "AO",
+      "name": "Angola"
+    },
+    {
+      "countryCode": "54",
+      "countryCodeIso": "AR",
+      "name": "Argentina"
+    },
+    {
+      "countryCode": "61",
+      "countryCodeIso": "AU",
+      "name": "Australia"
+    },
+    {
+      "countryCode": "43",
+      "countryCodeIso": "AT",
+      "name": "Austria"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "BS",
+      "name": "Bahamas"
+    },
+    {
+      "countryCode": "973",
+      "countryCodeIso": "BH",
+      "name": "Bahrain"
+    },
+    {
+      "countryCode": "32",
+      "countryCodeIso": "BE",
+      "name": "Belgium"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "BM",
+      "name": "Bermuda"
+    },
+    {
+      "countryCode": "591",
+      "countryCodeIso": "BO",
+      "name": "Bolivia"
+    },
+    {
+      "countryCode": "387",
+      "countryCodeIso": "BA",
+      "name": "Bosnia and Herzegovina"
+    },
+    {
+      "countryCode": "55",
+      "countryCodeIso": "BR",
+      "name": "Brazil"
+    },
+    {
+      "countryCode": "673",
+      "countryCodeIso": "BN",
+      "name": "Brunei Darussalam"
+    },
+    {
+      "countryCode": "359",
+      "countryCodeIso": "BG",
+      "name": "Bulgaria"
+    },
+    {
+      "countryCode": "855",
+      "countryCodeIso": "KH",
+      "name": "Cambodia"
+    },
+    {
+      "countryCode": "237",
+      "countryCodeIso": "CM",
+      "name": "Cameroon"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "CA",
+      "name": "Canada"
+    },
+    {
+      "countryCode": "56",
+      "countryCodeIso": "CL",
+      "name": "Chile"
+    },
+    {
+      "countryCode": "86",
+      "countryCodeIso": "CN",
+      "name": "China"
+    },
+    {
+      "countryCode": "57",
+      "countryCodeIso": "CO",
+      "name": "Colombia"
+    },
+    {
+      "countryCode": "506",
+      "countryCodeIso": "CR",
+      "name": "Costa Rica"
+    },
+    {
+      "countryCode": "385",
+      "countryCodeIso": "HR",
+      "name": "Croatia"
+    },
+    {
+      "countryCode": "357",
+      "countryCodeIso": "CY",
+      "name": "Cyprus"
+    },
+    {
+      "countryCode": "420",
+      "countryCodeIso": "CZ",
+      "name": "Czech Republic"
+    },
+    {
+      "countryCode": "45",
+      "countryCodeIso": "DK",
+      "name": "Denmark"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "DM",
+      "name": "Dominica"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "DO",
+      "name": "Dominican Republic"
+    },
+    {
+      "countryCode": "593",
+      "countryCodeIso": "EC",
+      "name": "Ecuador"
+    },
+    {
+      "countryCode": "20",
+      "countryCodeIso": "EG",
+      "name": "Egypt"
+    },
+    {
+      "countryCode": "503",
+      "countryCodeIso": "SV",
+      "name": "El Salvador"
+    },
+    {
+      "countryCode": "372",
+      "countryCodeIso": "EE",
+      "name": "Estonia"
+    },
+    {
+      "countryCode": "251",
+      "countryCodeIso": "ET",
+      "name": "Ethiopia"
+    },
+    {
+      "countryCode": "358",
+      "countryCodeIso": "FI",
+      "name": "Finland"
+    },
+    {
+      "countryCode": "33",
+      "countryCodeIso": "FR",
+      "name": "France"
+    },
+    {
+      "countryCode": "594",
+      "countryCodeIso": "GF",
+      "name": "French Guiana"
+    },
+    {
+      "countryCode": "995",
+      "countryCodeIso": "GE",
+      "name": "Georgia"
+    },
+    {
+      "countryCode": "49",
+      "countryCodeIso": "DE",
+      "name": "Germany"
+    },
+    {
+      "countryCode": "233",
+      "countryCodeIso": "GH",
+      "name": "Ghana"
+    },
+    {
+      "countryCode": "30",
+      "countryCodeIso": "GR",
+      "name": "Greece"
+    },
+    {
+      "countryCode": "590",
+      "countryCodeIso": "GP",
+      "name": "Guadeloupe"
+    },
+    {
+      "countryCode": "502",
+      "countryCodeIso": "GT",
+      "name": "Guatemala"
+    },
+    {
+      "countryCode": "852",
+      "countryCodeIso": "HK",
+      "name": "Hong Kong"
+    },
+    {
+      "countryCode": "36",
+      "countryCodeIso": "HU",
+      "name": "Hungary"
+    },
+    {
+      "countryCode": "354",
+      "countryCodeIso": "IS",
+      "name": "Iceland"
+    },
+    {
+      "countryCode": "91",
+      "countryCodeIso": "IN",
+      "name": "India"
+    },
+    {
+      "countryCode": "62",
+      "countryCodeIso": "ID",
+      "name": "Indonesia"
+    },
+    {
+      "countryCode": "353",
+      "countryCodeIso": "IE",
+      "name": "Ireland"
+    },
+    {
+      "countryCode": "972",
+      "countryCodeIso": "IL",
+      "name": "Israel"
+    },
+    {
+      "countryCode": "39",
+      "countryCodeIso": "IT",
+      "name": "Italy"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "JM",
+      "name": "Jamaica"
+    },
+    {
+      "countryCode": "81",
+      "countryCodeIso": "JP",
+      "name": "Japan"
+    },
+    {
+      "countryCode": "962",
+      "countryCodeIso": "JO",
+      "name": "Jordan"
+    },
+    {
+      "countryCode": "77",
+      "countryCodeIso": "KZ",
+      "name": "Kazakhstan"
+    },
+    {
+      "countryCode": "254",
+      "countryCodeIso": "KE",
+      "name": "Kenya"
+    },
+    {
+      "countryCode": "82",
+      "countryCodeIso": "KR",
+      "name": "Korea South"
+    },
+    {
+      "countryCode": "996",
+      "countryCodeIso": "KG",
+      "name": "Kyrgyzstan"
+    },
+    {
+      "countryCode": "371",
+      "countryCodeIso": "LV",
+      "name": "Latvia"
+    },
+    {
+      "countryCode": "370",
+      "countryCodeIso": "LT",
+      "name": "Lithuania"
+    },
+    {
+      "countryCode": "352",
+      "countryCodeIso": "LU",
+      "name": "Luxembourg"
+    },
+    {
+      "countryCode": "389",
+      "countryCodeIso": "MK",
+      "name": "Macedonia"
+    },
+    {
+      "countryCode": "60",
+      "countryCodeIso": "MY",
+      "name": "Malaysia"
+    },
+    {
+      "countryCode": "356",
+      "countryCodeIso": "MT",
+      "name": "Malta"
+    },
+    {
+      "countryCode": "596",
+      "countryCodeIso": "MQ",
+      "name": "Martinique"
+    },
+    {
+      "countryCode": "230",
+      "countryCodeIso": "MU",
+      "name": "Mauritius"
+    },
+    {
+      "countryCode": "262",
+      "countryCodeIso": "YT",
+      "name": "Mayotte"
+    },
+    {
+      "countryCode": "52",
+      "countryCodeIso": "MX",
+      "name": "Mexico"
+    },
+    {
+      "countryCode": "373",
+      "countryCodeIso": "MD",
+      "name": "Moldova"
+    },
+    {
+      "countryCode": "377",
+      "countryCodeIso": "MC",
+      "name": "Monaco"
+    },
+    {
+      "countryCode": "382",
+      "countryCodeIso": "ME",
+      "name": "Montenegro"
+    },
+    {
+      "countryCode": "212",
+      "countryCodeIso": "MA",
+      "name": "Morocco"
+    },
+    {
+      "countryCode": "31",
+      "countryCodeIso": "NL",
+      "name": "Netherlands"
+    },
+    {
+      "countryCode": "64",
+      "countryCodeIso": "NZ",
+      "name": "New Zealand"
+    },
+    {
+      "countryCode": "505",
+      "countryCodeIso": "NI",
+      "name": "Nicaragua"
+    },
+    {
+      "countryCode": "47",
+      "countryCodeIso": "NO",
+      "name": "Norway"
+    },
+    {
+      "countryCode": "92",
+      "countryCodeIso": "PK",
+      "name": "Pakistan"
+    },
+    {
+      "countryCode": "507",
+      "countryCodeIso": "PA",
+      "name": "Panama"
+    },
+    {
+      "countryCode": "595",
+      "countryCodeIso": "PY",
+      "name": "Paraguay"
+    },
+    {
+      "countryCode": "51",
+      "countryCodeIso": "PE",
+      "name": "Peru"
+    },
+    {
+      "countryCode": "63",
+      "countryCodeIso": "PH",
+      "name": "Philippines"
+    },
+    {
+      "countryCode": "48",
+      "countryCodeIso": "PL",
+      "name": "Poland"
+    },
+    {
+      "countryCode": "351",
+      "countryCodeIso": "PT",
+      "name": "Portugal"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "PR",
+      "name": "Puerto Rico"
+    },
+    {
+      "countryCode": "262",
+      "countryCodeIso": "RE",
+      "name": "Reunion"
+    },
+    {
+      "countryCode": "40",
+      "countryCodeIso": "RO",
+      "name": "Romania"
+    },
+    {
+      "countryCode": "966",
+      "countryCodeIso": "SA",
+      "name": "Saudi Arabia"
+    },
+    {
+      "countryCode": "381",
+      "countryCodeIso": "RS",
+      "name": "Serbia"
+    },
+    {
+      "countryCode": "65",
+      "countryCodeIso": "SG",
+      "name": "Singapore"
+    },
+    {
+      "countryCode": "421",
+      "countryCodeIso": "SK",
+      "name": "Slovakia"
+    },
+    {
+      "countryCode": "386",
+      "countryCodeIso": "SI",
+      "name": "Slovenia"
+    },
+    {
+      "countryCode": "27",
+      "countryCodeIso": "ZA",
+      "name": "South Africa"
+    },
+    {
+      "countryCode": "34",
+      "countryCodeIso": "ES",
+      "name": "Spain"
+    },
+    {
+      "countryCode": "94",
+      "countryCodeIso": "LK",
+      "name": "Sri Lanka"
+    },
+    {
+      "countryCode": "46",
+      "countryCodeIso": "SE",
+      "name": "Sweden"
+    },
+    {
+      "countryCode": "41",
+      "countryCodeIso": "CH",
+      "name": "Switzerland"
+    },
+    {
+      "countryCode": "886",
+      "countryCodeIso": "TW",
+      "name": "Taiwan"
+    },
+    {
+      "countryCode": "66",
+      "countryCodeIso": "TH",
+      "name": "Thailand"
+    },
+    {
+      "countryCode": "90",
+      "countryCodeIso": "TR",
+      "name": "Turkey"
+    },
+    {
+      "countryCode": "256",
+      "countryCodeIso": "UG",
+      "name": "Uganda"
+    },
+    {
+      "countryCode": "380",
+      "countryCodeIso": "UA",
+      "name": "Ukraine"
+    },
+    {
+      "countryCode": "971",
+      "countryCodeIso": "AE",
+      "name": "United Arab Emirates"
+    },
+    {
+      "countryCode": "44",
+      "countryCodeIso": "GB",
+      "name": "United Kingdom"
+    },
+    {
+      "countryCode": "255",
+      "countryCodeIso": "TZ",
+      "name": "United Republic of Tanzania"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "US",
+      "name": "United States"
+    },
+    {
+      "countryCode": "598",
+      "countryCodeIso": "UY",
+      "name": "Uruguay"
+    },
+    {
+      "countryCode": "99",
+      "countryCodeIso": "UZ",
+      "name": "Uzbekistan"
+    },
+    {
+      "countryCode": "58",
+      "countryCodeIso": "VE",
+      "name": "Venezuela"
+    },
+    {
+      "countryCode": "84",
+      "countryCodeIso": "VN",
+      "name": "Vietnam"
+    },
+    {
+      "countryCode": "1",
+      "countryCodeIso": "VI",
+      "name": "Virgin Islands, USA"
+    }
+  ]
+}

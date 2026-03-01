@@ -93,3 +93,9 @@ https://zadarma.com/en/support/api/
 ## License
 
 MIT
+
+## Todo
+
+- [ ] Support receiving SMS via webhook
+- [ ] Support making a call via CLI
+- [ ] Support receiving calls via webhook

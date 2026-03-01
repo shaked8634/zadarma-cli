@@ -12,8 +12,42 @@ import (
 // NewWebhookCmd creates the 'webhook' command group.
 func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "webhook",
+		Use:   "webhook [url]",
 		Short: "Manage Zadarma webhooks",
+		Long:  "Manage Zadarma webhook URL and start a local listener for incoming events.",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// If an URL is provided as the single argument, act like 'webhook set <url>'
+			if len(args) == 1 {
+				jsonOutput, _ := cmd.Flags().GetBool("json")
+				if !jsonOutput {
+					of, _ := cmd.Root().PersistentFlags().GetString("output")
+					jsonOutput = of == "json"
+				}
+				webhookURL := args[0]
+				c := factory()
+
+				result, err := c.SetWebhook(webhookURL)
+				if err != nil {
+					return err
+				}
+
+				if jsonOutput {
+					b, _ := json.MarshalIndent(result, "", "  ")
+					fmt.Println(string(b))
+				} else {
+					fmt.Printf("Webhook set successfully.\n")
+					if v, ok := result["url"]; ok {
+						fmt.Printf("URL: %v\n", v)
+					}
+				}
+				return nil
+			}
+
+			// No args -> show help (preserve existing subcommands for get/listen)
+			_ = cmd.Help()
+			return nil
+		},
 	}
 
 	setCmd := &cobra.Command{
@@ -58,7 +92,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 			}
 			c := factory()
 
-			result, err := c.GetWebhook()
+			result, err := c.GetWebhooks()
 			if err != nil {
 				return err
 			}

@@ -3,6 +3,9 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 )
@@ -33,10 +36,36 @@ func NewPBXCmd(factory ClientFactory) *cobra.Command {
 			if jsonOutput {
 				out, _ := json.MarshalIndent(pbxInfo, "", "  ")
 				fmt.Println(string(out))
-			} else {
-				fmt.Printf("PBX Name: %s\n", pbxInfo["name"])
-				fmt.Printf("Status: %s\n", pbxInfo["status"])
+				return nil
 			}
+
+			// Text output: print a simple table with pbx_id and numbers
+			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+			defer func() { _ = w.Flush() }()
+
+			fmt.Fprintln(w, "pbx_id\tnumbers")
+			fmt.Fprintln(w, "------\t-------")
+
+			pbxIDVal := ""
+			if v, ok := pbxInfo["pbx_id"]; ok {
+				pbxIDVal = fmt.Sprintf("%v", v)
+			}
+
+			numbersVal := ""
+			if v, ok := pbxInfo["numbers"]; ok {
+				switch t := v.(type) {
+				case []interface{}:
+					parts := make([]string, 0, len(t))
+					for _, it := range t {
+						parts = append(parts, fmt.Sprintf("%v", it))
+					}
+					numbersVal = strings.Join(parts, ",")
+				default:
+					numbersVal = fmt.Sprintf("%v", v)
+				}
+			}
+
+			fmt.Fprintf(w, "%s\t%s\n", pbxIDVal, numbersVal)
 			return nil
 		},
 	}

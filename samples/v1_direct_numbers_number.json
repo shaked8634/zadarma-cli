@@ -1,0 +1,23 @@
+{
+  "status": "success",
+  "info": {
+    "number": "972556620707",
+    "direction_id": 3044,
+    "status": "on",
+    "country": "Israel",
+    "description": "Mobile",
+    "number_name": null,
+    "start_date": "2024-04-15 15:10:31",
+    "stop_date": "2026-04-15 15:10:30",
+    "monthly_fee": 1.8,
+    "currency": "EUR",
+    "channels": 2,
+    "autorenew": "true",
+    "autorenew_period": "year",
+    "receive_sms": "true",
+    "group_id": 0,
+    "is_on_test": "false",
+    "sip": "649222",
+    "sip_name": "SIP"
+  }
+}
