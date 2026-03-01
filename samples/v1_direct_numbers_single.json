@@ -1,0 +1,23 @@
+[
+  {
+    "autorenew": "true",
+    "autorenew_period": "year",
+    "channels": 2,
+    "country": "Israel",
+    "currency": "EUR",
+    "description": "Mobile",
+    "direction_id": 3044,
+    "group_id": 0,
+    "is_on_test": "false",
+    "monthly_fee": 1.8,
+    "number": "972556620707",
+    "number_name": null,
+    "receive_sms": "true",
+    "sip": "649222",
+    "sip_name": "SIP",
+    "start_date": "2024-04-15 15:10:31",
+    "status": "on",
+    "stop_date": "2026-04-15 15:10:30",
+    "type": "common"
+  }
+]
