@@ -8,9 +8,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
-	"os"
-	"sort"
-	"strings"
+
+	"github.com/zadarma/zadarma-cli/internal/log"
 )
 
 // Signer handles Zadarma API authentication via HMAC-SHA1 signatures.
@@ -37,11 +36,11 @@ func NewSigner(apiKey, apiSecret string) *Signer {
 func (s *Signer) Sign(method string, params url.Values) string {
 	// Step 1 & 2: Build alphabetically-sorted query string
 	paramsStr := s.buildQueryString(params)
-	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] paramsStr=%q\n", paramsStr)
+	log.Debugf("paramsStr=%q", paramsStr)
 
 	// Step 3: Calculate MD5 of params string
 	paramsMD5 := s.md5Hex(paramsStr)
-	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] md5Hex=%q\n", paramsMD5)
+	log.Debugf("md5Hex=%q", paramsMD5)
 
 	// Concatenate: method + paramsStr + md5(paramsStr)
 	signString := method + paramsStr + paramsMD5
@@ -49,7 +48,7 @@ func (s *Signer) Sign(method string, params url.Values) string {
 	if len(logStr) > 50 {
 		logStr = logStr[:50]
 	}
-	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] signString(first 50)=%q\n", logStr)
+	log.Debugf("signString(first 50)=%q", logStr)
 
 	// Step 4: HMAC-SHA1 with secret key
 	hmacResult := s.hmacSHA1(signString)
@@ -60,11 +59,11 @@ func (s *Signer) Sign(method string, params url.Values) string {
 	if len(logHex) > 20 {
 		logHex = logHex[:20]
 	}
-	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] hashHex[:20]=%q\n", logHex)
-	
+	log.Debugf("hashHex[:20]=%q", logHex)
+
 	bts := []byte(hashHex)
 	signature := base64.StdEncoding.EncodeToString(bts)
-	fmt.Fprintf(os.Stderr, "[SIGNER_DEBUG] final_sig=%q\n", signature)
+	log.Debugf("final_sig=%q", signature)
 
 	return signature
 }
@@ -75,27 +74,17 @@ func (s *Signer) AuthHeader(method string, params url.Values) string {
 	return fmt.Sprintf("%s:%s", s.APIKey, signature)
 }
 
-// buildQueryString creates an alphabetically-sorted query string from params.
+// buildQueryString creates a query string from params using the same rules
+// as the official clients (application/x-www-form-urlencoded):
+// - keys are sorted
+// - spaces are encoded as '+' (not '%20')
+// Using url.Values.Encode() matches this behavior.
 func (s *Signer) buildQueryString(params url.Values) string {
 	if len(params) == 0 {
 		return ""
 	}
-
-	// Get sorted keys
-	keys := make([]string, 0, len(params))
-	for k := range params {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	// Build query string with sorted params
-	var parts []string
-	for _, k := range keys {
-		// Use the first value for each key
-		parts = append(parts, fmt.Sprintf("%s=%s", url.QueryEscape(k), url.QueryEscape(params.Get(k))))
-	}
-
-	return strings.Join(parts, "&")
+	// url.Values.Encode sorts keys and formats spaces as '+'
+	return params.Encode()
 }
 
 // md5Hex calculates MD5 hash and returns hex string.

@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -21,16 +20,19 @@ func NewDirectCmd(factory ClientFactory) *cobra.Command {
 			Use:   "countries",
 			Short: "List countries with direct numbers",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				outputFormat, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput, _ := cmd.Flags().GetBool("json")
+				if !jsonOutput {
+					of, _ := cmd.Root().PersistentFlags().GetString("output")
+					jsonOutput = of == "json"
+				}
 				c := factory()
 
 				countries, err := c.GetDirectCountries()
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					return failCmd(cmd, err)
 				}
 
-				if outputFormat == "json" {
+				if jsonOutput {
 					out, _ := json.MarshalIndent(countries, "", "  ")
 					fmt.Println(string(out))
 				} else {
@@ -46,16 +48,19 @@ func NewDirectCmd(factory ClientFactory) *cobra.Command {
 			Short: "List direct destinations for a specific country",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				outputFormat, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput, _ := cmd.Flags().GetBool("json")
+				if !jsonOutput {
+					of, _ := cmd.Root().PersistentFlags().GetString("output")
+					jsonOutput = of == "json"
+				}
 				c := factory()
 
 				countryData, err := c.GetDirectCountry(args[0])
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					return failCmd(cmd, err)
 				}
 
-				if outputFormat == "json" {
+				if jsonOutput {
 					out, _ := json.MarshalIndent(countryData, "", "  ")
 					fmt.Println(string(out))
 				} else {
@@ -75,16 +80,19 @@ func NewDirectCmd(factory ClientFactory) *cobra.Command {
 			Short: "Get information for a specific direct number",
 			Args:  cobra.ExactArgs(2),
 			RunE: func(cmd *cobra.Command, args []string) error {
-				outputFormat, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput, _ := cmd.Flags().GetBool("json")
+				if !jsonOutput {
+					of, _ := cmd.Root().PersistentFlags().GetString("output")
+					jsonOutput = of == "json"
+				}
 				c := factory()
 
 				info, err := c.GetDirectNumber(args[0], args[1])
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					return failCmd(cmd, err)
 				}
 
-				if outputFormat == "json" {
+				if jsonOutput {
 					out, _ := json.MarshalIndent(info, "", "  ")
 					fmt.Println(string(out))
 				} else {

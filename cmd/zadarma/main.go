@@ -43,6 +43,8 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&apiKey, "key", "k", "", "Zadarma API key")
 	rootCmd.PersistentFlags().StringVarP(&apiSecret, "secret", "s", "", "Zadarma API secret")
 	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format (text|json)")
+	// Provide a convenient global --json flag that commands can inherit
+	rootCmd.PersistentFlags().Bool("json", false, "Output JSON instead of text (alias to --output=json)")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
 
 	clientFactory := func() *client.Client {

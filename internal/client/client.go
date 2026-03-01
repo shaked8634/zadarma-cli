@@ -6,9 +6,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
+	"strings"
 
 	"github.com/zadarma/zadarma-cli/internal/auth"
+	"github.com/zadarma/zadarma-cli/internal/log"
 )
 
 const (
@@ -26,18 +27,13 @@ type Client struct {
 
 // NewClient creates a new Zadarma API client.
 func NewClient(apiKey, apiSecret string, debug bool) *Client {
+	// configure global logger debug flag based on client setting
+	log.SetDebug(debug)
 	return &Client{
 		baseURL: BaseURL + APIVersion,
 		signer:  auth.NewSigner(apiKey, apiSecret),
 		http:    &http.Client{},
 		debug:   debug,
-	}
-}
-
-// debugPrint prints debug messages if debug mode is enabled.
-func (c *Client) debugPrint(format string, args ...interface{}) {
-	if c.debug {
-		fmt.Fprintf(os.Stderr, "[DEBUG] "+format+"\n", args...)
 	}
 }
 
@@ -113,14 +109,38 @@ func (c *Client) GetSIPStatus(id string) (isOnline bool, err error) {
 	return resp.IsOnline == "true", nil
 }
 
-// GetDIDs fetches all phone numbers (DIDs).
-func (c *Client) GetDIDs() ([]map[string]interface{}, error) {
-	method := "/info/did/"
+// GetDirectNumbers fetches all phone numbers (DIDs) owned by the user.
+// API (per official TS client): GET /v1/direct_numbers/
+func (c *Client) GetDirectNumbers() ([]map[string]interface{}, error) {
+	method := "/direct_numbers/"
 	params := url.Values{}
 
 	var resp struct {
 		Status string                   `json:"status"`
 		Data   []map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
+	}
+
+	return resp.Data, nil
+}
+
+// GetPrice returns the price information for a call to the given number.
+// API: GET /v1/info/price/?number=<phone>
+func (c *Client) GetPrice(number string) (map[string]interface{}, error) {
+	method := "/info/price/"
+	params := url.Values{}
+	params.Set("number", number)
+
+	var resp struct {
+		Status string                 `json:"status"`
+		Data   map[string]interface{} `json:"data"`
 	}
 
 	if err := c.Get(method, params, &resp); err != nil {
@@ -201,18 +221,70 @@ func (c *Client) GetDirectNumber(type_, number string) (map[string]interface{}, 
 }
 
 // SendSMS sends an SMS message.
-func (c *Client) SendSMS(phoneNumber, message string) (map[string]interface{}, error) {
-	method := "/sms/"
+func (c *Client) SendSMS(phoneNumber, message, sender string) (map[string]interface{}, error) {
+	method := "/sms/send/"
 	params := url.Values{}
 	params.Set("number", phoneNumber)
 	params.Set("message", message)
-
-	var resp struct {
-		Status string                 `json:"status"`
-		Data   map[string]interface{} `json:"data"`
+	if sender != "" {
+		params.Set("caller_id", sender)
 	}
 
-	if err := c.Post(method, params, nil, &resp); err != nil {
+	// Use a generic map to accommodate different possible API shapes
+	var raw map[string]any
+	if err := c.Post(method, params, nil, &raw); err != nil {
+		return nil, err
+	}
+
+	status, _ := raw["status"].(string)
+	if status != "success" {
+		if status == "" {
+			status = "unknown"
+		}
+		return nil, fmt.Errorf("API error: %s", status)
+	}
+
+	// Prefer nested data map if present; otherwise, normalize common top-level fields
+	out := map[string]any{}
+	if d, ok := raw["data"].(map[string]any); ok && d != nil {
+		out = d
+	}
+	// Normalize id field
+	if _, ok := out["id"]; !ok || out["id"] == nil {
+		if v, ok := raw["id"]; ok {
+			out["id"] = v
+		} else if v, ok := raw["message_id"]; ok {
+			out["id"] = v
+		} else if v, ok := raw["sms_id"]; ok {
+			out["id"] = v
+		}
+	}
+	// Normalize status field for SMS send result if present at alternative keys
+	if _, ok := out["status"]; !ok || out["status"] == nil {
+		if v, ok := raw["sms_status"]; ok {
+			out["status"] = v
+		} else if v, ok := raw["message_status"]; ok {
+			out["status"] = v
+		} else if v, ok := raw["status"]; ok { // fallback to overall status
+			out["status"] = v
+		}
+	}
+
+	return out, nil
+}
+
+// GetSMSSenders returns the list of valid SMS senders to a given number.
+func (c *Client) GetSMSSenders(phones string) ([]map[string]interface{}, error) {
+	method := "/sms/senderid/"
+	params := url.Values{}
+	params.Set("phones", phones)
+
+	var resp struct {
+		Status string                   `json:"status"`
+		Data   []map[string]interface{} `json:"data"`
+	}
+
+	if err := c.Get(method, params, &resp); err != nil {
 		return nil, err
 	}
 
@@ -296,19 +368,26 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		params = url.Values{}
 	}
 
-	// Add format=json to params before signing (matches Python API behavior)
-	params.Set("format", "json")
+	// Do not force format=json globally; callers/commands may add it explicitly if needed.
 
-	// Build full URL
+	// Build URL and (possibly) request body depending on HTTP method
 	fullURL := c.baseURL + apiMethod
-	if len(params) > 0 {
-		fullURL = fullURL + "?" + params.Encode()
+	reqBody := body
+	if httpMethod == http.MethodGet {
+		if len(params) > 0 {
+			fullURL = fullURL + "?" + params.Encode()
+		}
+	} else {
+		// For non-GET methods send params in the body as x-www-form-urlencoded
+		if reqBody == nil && len(params) > 0 {
+			reqBody = strings.NewReader(params.Encode())
+		}
 	}
 
-	c.debugPrint("Request: %s %s", httpMethod, fullURL)
+	log.Debugf("Request: %s %s", httpMethod, fullURL)
 
 	// Create request
-	req, err := http.NewRequest(httpMethod, fullURL, body)
+	req, err := http.NewRequest(httpMethod, fullURL, reqBody)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -318,9 +397,12 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 	signingPath := APIVersion + apiMethod
 	authHeader := c.signer.AuthHeader(signingPath, params)
 	req.Header.Set("Authorization", authHeader)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// Per docs, POST and PUT must specify Content-Type
+	if httpMethod == http.MethodPost || httpMethod == http.MethodPut {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
 
-	c.debugPrint("Authorization: %s", authHeader)
+	log.Debugf("Authorization: %s", authHeader)
 
 	// Execute request
 	resp, err := c.http.Do(req)
@@ -337,11 +419,13 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to read response: %w", err)
 	}
 
-	c.debugPrint("Response: HTTP %d (%d bytes)", resp.StatusCode, len(respBody))
+	log.Debugf("Response: HTTP %d (%d bytes)", resp.StatusCode, len(respBody))
+	// Per user request, print the full response body
+	log.Debugf("Response body: %s", string(respBody))
 
 	// Check HTTP status
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		c.debugPrint("Error response: %s", string(respBody))
+		log.Debugf("Error response: %s", string(respBody))
 		return fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(respBody))
 	}
 
@@ -350,6 +434,6 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
-	c.debugPrint("Parsed response successfully")
+	log.Debugf("Parsed response successfully")
 	return nil
 }

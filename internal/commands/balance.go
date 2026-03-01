@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/zadarma/zadarma-cli/internal/client"
@@ -20,12 +19,18 @@ func NewBalanceCmd(factory ClientFactory) *cobra.Command {
 		Long:  "Get your Zadarma account balance",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput, _ := cmd.Flags().GetBool("json")
+			if !jsonOutput {
+				if jb, _ := cmd.Root().PersistentFlags().GetBool("json"); jb {
+					jsonOutput = true
+				}
+				of, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput = of == "json"
+			}
 			c := factory()
 
 			balance, currency, err := c.GetBalance()
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-				os.Exit(1)
+				return failCmd(cmd, err)
 			}
 
 			if jsonOutput {

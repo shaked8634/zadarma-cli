@@ -3,6 +3,7 @@ package client
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -10,6 +11,17 @@ func TestGetStatistics(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/statistics/" {
 			t.Errorf("Expected path /v1/statistics/, got %s", r.URL.Path)
+		}
+
+		// Verify parameters
+		if r.URL.Query().Get("start") != "2026-02-28 00:00:00" {
+			t.Errorf("Expected start 2026-02-28 00:00:00, got %s", r.URL.Query().Get("start"))
+		}
+		if r.URL.Query().Get("sip") != "12345" {
+			t.Errorf("Expected sip 12345, got %s", r.URL.Query().Get("sip"))
+		}
+		if r.URL.Query().Get("cost_only") != "1" {
+			t.Errorf("Expected cost_only 1, got %s", r.URL.Query().Get("cost_only"))
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -27,7 +39,12 @@ func TestGetStatistics(t *testing.T) {
 	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
-	stats, err := client.GetStatistics(nil)
+	params := url.Values{}
+	params.Set("start", "2026-02-28 00:00:00")
+	params.Set("sip", "12345")
+	params.Set("cost_only", "1")
+
+	stats, err := client.GetStatistics(params)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

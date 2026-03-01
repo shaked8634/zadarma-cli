@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -26,8 +25,7 @@ func NewSIPCmd(factory ClientFactory) *cobra.Command {
 
 				sips, err := c.GetSIPs()
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					return failCmd(cmd, err)
 				}
 
 				if jsonOutput {
@@ -46,21 +44,34 @@ func NewSIPCmd(factory ClientFactory) *cobra.Command {
 			Short: "Get SIP account status",
 			Args:  cobra.ExactArgs(1),
 			RunE: func(cmd *cobra.Command, args []string) error {
+				jsonOutput, _ := cmd.Flags().GetBool("json")
+				if !jsonOutput {
+					of, _ := cmd.Root().PersistentFlags().GetString("output")
+					jsonOutput = of == "json"
+				}
 				c := factory()
 				id := args[0]
 
 				isOnline, err := c.GetSIPStatus(id)
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					return failCmd(cmd, err)
 				}
 
-				status := "offline"
-				if isOnline {
-					status = "online"
+				if jsonOutput {
+					out := map[string]any{
+						"sip":       id,
+						"is_online": isOnline,
+						"status":    map[bool]string{true: "online", false: "offline"}[isOnline],
+					}
+					b, _ := json.MarshalIndent(out, "", "  ")
+					fmt.Println(string(b))
+				} else {
+					status := "offline"
+					if isOnline {
+						status = "online"
+					}
+					fmt.Printf("SIP %s is %s\n", id, status)
 				}
-
-				fmt.Printf("SIP %s is %s\n", id, status)
 				return nil
 			},
 		},

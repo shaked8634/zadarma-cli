@@ -3,7 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -21,16 +20,19 @@ func NewDIDCmd(factory ClientFactory) *cobra.Command {
 			Use:   "list",
 			Short: "List phone numbers",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				outputFormat, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput, _ := cmd.Flags().GetBool("json")
+				if !jsonOutput {
+					of, _ := cmd.Root().PersistentFlags().GetString("output")
+					jsonOutput = of == "json"
+				}
 				c := factory()
 
-				dids, err := c.GetDIDs()
+				dids, err := c.GetDirectNumbers()
 				if err != nil {
-					fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-					os.Exit(1)
+					return failCmd(cmd, err)
 				}
 
-				if outputFormat == "json" {
+				if jsonOutput {
 					out, _ := json.MarshalIndent(dids, "", "  ")
 					fmt.Println(string(out))
 				} else {

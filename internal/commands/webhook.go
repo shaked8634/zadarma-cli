@@ -21,6 +21,11 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 		Short: "Set the notification webhook URL",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			jsonOutput, _ := cmd.Flags().GetBool("json")
+			if !jsonOutput {
+				of, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput = of == "json"
+			}
 			webhookURL := args[0]
 			c := factory()
 
@@ -29,7 +34,15 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("Webhook set successfully: %v\n", result)
+			if jsonOutput {
+				b, _ := json.MarshalIndent(result, "", "  ")
+				fmt.Println(string(b))
+			} else {
+				fmt.Printf("Webhook set successfully.\n")
+				if v, ok := result["url"]; ok {
+					fmt.Printf("URL: %v\n", v)
+				}
+			}
 			return nil
 		},
 	}
@@ -38,6 +51,11 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 		Use:   "get",
 		Short: "Get the current notification webhook URL",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			jsonOutput, _ := cmd.Flags().GetBool("json")
+			if !jsonOutput {
+				of, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput = of == "json"
+			}
 			c := factory()
 
 			result, err := c.GetWebhook()
@@ -45,8 +63,16 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 				return err
 			}
 
-			out, _ := json.MarshalIndent(result, "", "  ")
-			fmt.Println(string(out))
+			if jsonOutput {
+				out, _ := json.MarshalIndent(result, "", "  ")
+				fmt.Println(string(out))
+			} else {
+				if v, ok := result["url"]; ok {
+					fmt.Printf("Webhook URL: %v\n", v)
+				} else {
+					fmt.Println("No webhook URL configured.")
+				}
+			}
 			return nil
 		},
 	}
@@ -71,7 +97,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 
 				if r.Method == "POST" {
 					body, _ := io.ReadAll(r.Body)
-					
+
 					// Try to parse as SMS event
 					var data map[string]interface{}
 					if err := json.Unmarshal(body, &data); err == nil {
@@ -88,7 +114,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 						// Raw output if not JSON
 						fmt.Printf("\n[WEBHOOK] Raw body: %s\n", string(body))
 					}
-					
+
 					w.WriteHeader(http.StatusOK)
 					_, _ = fmt.Fprint(w, "OK")
 				}

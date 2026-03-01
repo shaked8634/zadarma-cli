@@ -5,20 +5,47 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 )
 
 // NewStatisticsCmd creates the 'statistics' command.
 func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
-	var start, end, sip string
+	var start, end string
+	var sip int
+	var costOnly bool
 
 	cmd := &cobra.Command{
 		Use:   "statistics",
 		Short: "Get call statistics",
 		Long:  "Get call statistics from your Zadarma account",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+			const timeFormat = "2006-01-02 15:04:05"
+			if start != "" {
+				if _, err := time.Parse(timeFormat, start); err != nil {
+					return fmt.Errorf("invalid start date format: %s. Expected YYYY-MM-DD HH:MM:SS", start)
+				}
+			}
+			if end != "" {
+				if _, err := time.Parse(timeFormat, end); err != nil {
+					return fmt.Errorf("invalid end date format: %s. Expected YYYY-MM-DD HH:MM:SS", end)
+				}
+			}
+			if cmd.Flags().Changed("sip") && sip <= 0 {
+				return fmt.Errorf("invalid sip: %d. Must be a positive integer", sip)
+			}
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput, _ := cmd.Flags().GetBool("json")
+			if !jsonOutput {
+				if jb, _ := cmd.Root().PersistentFlags().GetBool("json"); jb {
+					jsonOutput = true
+				}
+				of, _ := cmd.Root().PersistentFlags().GetString("output")
+				jsonOutput = jsonOutput || of == "json"
+			}
 			c := factory()
 
 			params := url.Values{}
@@ -28,8 +55,11 @@ func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
 			if end != "" {
 				params.Set("end", end)
 			}
-			if sip != "" {
-				params.Set("sip", sip)
+			if sip != 0 {
+				params.Set("sip", fmt.Sprintf("%d", sip))
+			}
+			if costOnly {
+				params.Set("cost_only", "1")
 			}
 
 			stats, err := c.GetStatistics(params)
@@ -66,7 +96,8 @@ func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
 
 	cmd.Flags().StringVar(&start, "start", "", "Start date (YYYY-MM-DD HH:MM:SS)")
 	cmd.Flags().StringVar(&end, "end", "", "End date (YYYY-MM-DD HH:MM:SS)")
-	cmd.Flags().StringVar(&sip, "sip", "", "SIP account to filter by")
+	cmd.Flags().IntVar(&sip, "sip", 0, "SIP account to filter by (integer)")
+	cmd.Flags().BoolVar(&costOnly, "cost-only", false, "Retrieve only costs")
 
 	return cmd
 }

@@ -45,12 +45,15 @@ Command-based interface using Go's `flag` package:
 
 ## Output Format
 
-Currently supports **text output**:
-```
-Balance: 123.45 USD
-```
+- Text output is the default for all commands.
+- JSON output is enabled only when explicitly requested via either flag:
+  - `--json`
+  - `--output=json`
 
-JSON output can be added as a `--json` flag in the future.
+Example:
+```
+zadarma-cli balance --json
+```
 
 ## Authentication
 
@@ -66,22 +69,30 @@ Or pass via CLI flags:
 zadarma-cli -key "..." -secret "..." balance
 ```
 
-### Testing the Balance Endpoint
+### Authentication & Signing Notes
 
-Use this curl command to test (signature shown for your API key):
-```bash
-curl -X GET 'https://api.zadarma.com/v1/info/balance/' \
-  -H 'Authorization: 1c64dee7ee7638e3a507:rhSjhy87PyCS8HamPv6b1t199EA='
-```
+Zadarma uses HMAC-SHA1 signatures. Our `internal/auth/signer.go` implements the official algorithm and matches the
+behavior of the reference TypeScript client.
 
-To generate signatures for other endpoints:
-1. Prepare your params as `key=value&key2=value2` (alphabetically sorted)
-2. Calculate `md5(params_string)`
-3. Build: `method + params + md5`
-4. HMAC-SHA1 with secret
-5. Base64 encode
+Key points we discovered and validated against production:
 
-The `Signer` package automates this.
+- Always sign using the full versioned path, including leading and trailing slashes. Example: `"/v1/sms/send/"`.
+- Canonical parameter string must be built like `application/x-www-form-urlencoded`:
+  - Keys sorted alphabetically.
+  - Spaces encoded as `+` (NOT `%20`). We rely on `url.Values.Encode()` for this behavior.
+- Signature string: `method + paramsStr + md5(paramsStr)`.
+- HMAC-SHA1 over the string with the API secret; hex-encode the HMAC result, then Base64-encode that hex string.
+- Authorization header format: `API_KEY:BASE64_HEX_HMAC`.
+
+HTTP request conventions per API docs:
+
+- For `POST` and `PUT`, set `Content-Type: application/x-www-form-urlencoded` (or `multipart/form-data`, which we don’t
+  currently use).
+- For `GET`, parameters are appended to the query string. For non-GET, parameters go in the request body in form-encoded
+  format. Our client follows this.
+
+Important: Do NOT force `format=json` globally. We removed the implicit `format=json` parameter. If an endpoint supports
+alternate formats and JSON is required for CLI presentation, the command layer decides and adds it explicitly as needed.
 
 ## CLI Framework Migration
 
@@ -134,9 +145,72 @@ go test ./internal/auth -v
 
 Signature generation is tested against the known test credentials.
 
+Project-wide tests:
+
+```bash
+go test ./...
+```
+
+Smoke script for quick validation (requires valid API credentials):
+
+```bash
+export ZADARMA_API_KEY=...
+export ZADARMA_API_SECRET=...
+./scripts/smoke.sh
+```
+
+The script builds the CLI and runs a subset of safe read-only commands. SMS send and extended statistics calls are
+opt-in via environment flags to avoid accidental charges.
+
 ## Dependencies
 
 Go 1.25.7 - uses only stdlib (no external dependencies).
+
+## API Usage Notes & Decisions
+
+This section captures practical details we validated while integrating with the Zadarma API.
+
+### Endpoints implemented
+
+- Balance: `GET /v1/info/balance/`
+- SIP list: `GET /v1/sip/`
+- SIP status: `GET /v1/sip/{id}/status/`
+- SMS send: `POST /v1/sms/send/` (params in body; `caller_id` optional)
+- SMS senders for numbers: `GET /v1/sms/senderid/?phones=...`
+- PBX info: `GET /v1/pbx/`
+- Webhook set: `POST /v1/pbx/webhooks/url/` (body: `url=<...>`)
+- Webhook get: `GET /v1/pbx/webhooks/url/`
+- Statistics: `GET /v1/statistics/` (supports `start`, `end`, `sip`, `cost_only`)
+- Price lookup: `GET /v1/info/price/?number=...`
+- Direct numbers:
+  - Countries: `GET /v1/direct_numbers/countries/`
+  - Country destinations: `GET /v1/direct_numbers/country/?country=...`
+  - Number details: `GET /v1/direct_numbers/number/?type=...&number=...`
+- DID list (user’s purchased numbers): `GET /v1/direct_numbers/`  ← Note: older docs/samples reference `/info/did/`,
+  which returns 404 “Wrong method name” on production. We use `/direct_numbers/` per the official TypeScript client.
+
+### Request building
+
+- Non-GET parameters are sent in the body as `application/x-www-form-urlencoded`.
+- GET parameters are signed and appended to the URL’s query.
+- We removed implicit `format=json` from all requests. Commands decide presentation (text vs JSON) independent of
+  transport.
+
+### Logging
+
+- Centralized logger under `internal/log` with `Debugf/Infof/Errorf` and a global `SetDebug()`.
+- Enable with `-d/--debug` to print request method/URL, Authorization header, and the full raw response body for
+  troubleshooting.
+
+### Numbers formatting
+
+- The official clients normalize phone numbers to digits only (strip non-digits). Our client currently accepts E.164 (
+  e.g., `+1234567890`) as-is. If stricter normalization is required, we can add it in a backwards-compatible way.
+
+### Sandbox vs production
+
+- Our base URL targets production `https://api.zadarma.com/v1`.
+- If sandbox support is required, we can add a constructor flag or environment switch to point to the sandbox host.
 
 ## Deployment to Forgejo
 
