@@ -15,37 +15,35 @@ func NewPBXCmd(factory ClientFactory) *cobra.Command {
 		Long:  "PBX configuration and management commands",
 	}
 
-	cmd.AddCommand(
-		&cobra.Command{
-			Use:   "info",
-			Short: "Get PBX information",
-			RunE: func(cmd *cobra.Command, args []string) error {
-				jsonOutput, _ := cmd.Flags().GetBool("json")
-				if !jsonOutput {
-					if jb, _ := cmd.Root().PersistentFlags().GetBool("json"); jb {
-						jsonOutput = true
-					}
-					of, _ := cmd.Root().PersistentFlags().GetString("output")
-					jsonOutput = jsonOutput || of == "json"
-				}
-				c := factory()
+	infoCmd := &cobra.Command{
+		Use:   "info",
+		Short: "Get PBX information",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			jsonOutput := wantsJSON(cmd)
+			c := factory()
 
-				pbxInfo, err := c.GetPBXInfo()
-				if err != nil {
-					return failCmd(cmd, err)
-				}
+			pbxID, _ := cmd.Flags().GetString("pbx-id")
+			numbers, _ := cmd.Flags().GetString("numbers")
 
-				if jsonOutput {
-					out, _ := json.MarshalIndent(pbxInfo, "", "  ")
-					fmt.Println(string(out))
-				} else {
-					fmt.Printf("PBX Name: %s\n", pbxInfo["name"])
-					fmt.Printf("Status: %s\n", pbxInfo["status"])
-				}
-				return nil
-			},
+			pbxInfo, err := c.GetPBXInfo(pbxID, numbers)
+			if err != nil {
+				return failCmd(cmd, err)
+			}
+
+			if jsonOutput {
+				out, _ := json.MarshalIndent(pbxInfo, "", "  ")
+				fmt.Println(string(out))
+			} else {
+				fmt.Printf("PBX Name: %s\n", pbxInfo["name"])
+				fmt.Printf("Status: %s\n", pbxInfo["status"])
+			}
+			return nil
 		},
-	)
+	}
+	infoCmd.Flags().String("pbx-id", "", "PBX identifier to query")
+	infoCmd.Flags().String("numbers", "", "Comma-separated list of numbers to filter")
+
+	cmd.AddCommand(infoCmd)
 
 	return cmd
 }

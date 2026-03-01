@@ -78,7 +78,7 @@ func TestGetSIPs(t *testing.T) {
 	}
 }
 
-// TestGetDIDs tests the GetDirectNumbers endpoint.
+// TestGetDIDs tests the GetDirectNumbers endpoint for fetching all numbers.
 func TestGetDIDs(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/v1/direct_numbers/" {
@@ -89,9 +89,9 @@ func TestGetDIDs(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{
 			"status":"success",
-			"data":[
-				{"number":"+14155555555","type":"voice","status":"active"},
-				{"number":"+14155555556","type":"fax","status":"active"}
+			"info":[
+				{"number":"972556620707","type":"voice","status":"on","country":"Israel"},
+				{"number":"19293091254","type":"fax","status":"on","country":"United States"}
 			]
 		}`))
 	}))
@@ -109,8 +109,76 @@ func TestGetDIDs(t *testing.T) {
 		t.Errorf("Expected 2 DIDs, got %d", len(dids))
 	}
 
-	if dids[0]["number"] != "+14155555555" {
-		t.Errorf("Expected number +14155555555, got %v", dids[0]["number"])
+	if dids[0]["number"] != "972556620707" {
+		t.Errorf("Expected number 972556620707, got %v", dids[0]["number"])
+	}
+}
+
+// TestGetDIDsByNumber tests the GetDirectNumbers endpoint for fetching specific numbers.
+func TestGetDIDsByNumber(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/direct_numbers/" {
+			t.Errorf("Expected path /v1/direct_numbers/, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{
+			"status":"success",
+			"info":[
+				{"number":"972556620707","type":"voice","status":"on","country":"Israel"},
+				{"number":"19293091254","type":"fax","status":"on","country":"United States"}
+			]
+		}`))
+	}))
+	defer server.Close()
+
+	client := NewClient("test_key", "test_secret", false)
+	client.baseURL = server.URL + "/v1"
+
+	dids, err := client.GetDirectNumbers("972556620707")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if len(dids) != 1 {
+		t.Errorf("Expected 1 DID, got %d", len(dids))
+	}
+
+	if dids[0]["number"] != "972556620707" {
+		t.Errorf("Expected number 972556620707, got %v", dids[0]["number"])
+	}
+}
+
+// TestGetDIDsByMultipleNumbers tests the GetDirectNumbers endpoint for fetching multiple specific numbers.
+func TestGetDIDsByMultipleNumbers(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/direct_numbers/" {
+			t.Errorf("Expected path /v1/direct_numbers/, got %s", r.URL.Path)
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{
+			"status":"success",
+			"info":[
+				{"number":"972556620707","type":"voice","status":"on","country":"Israel"},
+				{"number":"19293091254","type":"fax","status":"on","country":"United States"}
+			]
+		}`))
+	}))
+	defer server.Close()
+
+	client := NewClient("test_key", "test_secret", false)
+	client.baseURL = server.URL + "/v1"
+
+	dids, err := client.GetDirectNumbers("972556620707", "19293091254")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if len(dids) != 2 {
+		t.Errorf("Expected 2 DIDs, got %d", len(dids))
 	}
 }
 
@@ -244,8 +312,8 @@ func TestGetPrice(t *testing.T) {
 // TestGetPBXInfo tests the GetPBXInfo endpoint.
 func TestGetPBXInfo(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/pbx/" {
-			t.Errorf("Expected path /v1/pbx/, got %s", r.URL.Path)
+		if r.URL.Path != "/v1/pbx/internal/" {
+			t.Errorf("Expected path /v1/pbx/internal/, got %s", r.URL.Path)
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -260,7 +328,7 @@ func TestGetPBXInfo(t *testing.T) {
 	client := NewClient("test_key", "test_secret", false)
 	client.baseURL = server.URL + "/v1"
 
-	pbxInfo, err := client.GetPBXInfo()
+	pbxInfo, err := client.GetPBXInfo("", "")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

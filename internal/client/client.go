@@ -109,15 +109,16 @@ func (c *Client) GetSIPStatus(id string) (isOnline bool, err error) {
 	return resp.IsOnline == "true", nil
 }
 
-// GetDirectNumbers fetches all phone numbers (DIDs) owned by the user.
-// API (per official TS client): GET /v1/direct_numbers/
-func (c *Client) GetDirectNumbers() ([]map[string]interface{}, error) {
+// GetDirectNumbers fetches phone numbers (DIDs) owned by the user.
+// If numbers is empty, it fetches all numbers via GET /v1/direct_numbers/
+// If numbers are provided, filters the results to only those numbers
+func (c *Client) GetDirectNumbers(numbers ...string) ([]map[string]interface{}, error) {
 	method := "/direct_numbers/"
 	params := url.Values{}
 
 	var resp struct {
 		Status string                   `json:"status"`
-		Data   []map[string]interface{} `json:"data"`
+		Info   []map[string]interface{} `json:"info"`
 	}
 
 	if err := c.Get(method, params, &resp); err != nil {
@@ -128,7 +129,41 @@ func (c *Client) GetDirectNumbers() ([]map[string]interface{}, error) {
 		return nil, fmt.Errorf("API error: %s", resp.Status)
 	}
 
-	return resp.Data, nil
+	// If no specific numbers requested, return all
+	if len(numbers) == 0 {
+		return resp.Info, nil
+	}
+
+	// Filter to requested numbers only
+	numberSet := make(map[string]bool)
+	for _, num := range numbers {
+		numberSet[num] = true
+	}
+
+	var result []map[string]interface{}
+	for _, dn := range resp.Info {
+		if num, ok := dn["number"].(string); ok && numberSet[num] {
+			result = append(result, dn)
+		}
+	}
+
+	// Verify all requested numbers were found
+	if len(result) != len(numbers) {
+		foundNumbers := make(map[string]bool)
+		for _, dn := range result {
+			if num, ok := dn["number"].(string); ok {
+				foundNumbers[num] = true
+			}
+		}
+		for _, num := range numbers {
+			if !foundNumbers[num] {
+				log.Debugf("Requested number not found: %s", num)
+			}
+		}
+		return result, fmt.Errorf("not all requested numbers found")
+	}
+
+	return result, nil
 }
 
 // GetPrice returns the price information for a call to the given number.
@@ -295,10 +330,16 @@ func (c *Client) GetSMSSenders(phones string) ([]map[string]interface{}, error) 
 	return resp.Data, nil
 }
 
-// GetPBXInfo fetches PBX configuration information.
-func (c *Client) GetPBXInfo() (map[string]interface{}, error) {
-	method := "/pbx/"
+// GetPBXInfo fetches PBX configuration information. If pbxID or numbers are provided they are passed as query parameters.
+func (c *Client) GetPBXInfo(pbxID, numbers string) (map[string]interface{}, error) {
+	method := "/pbx/internal/"
 	params := url.Values{}
+	if pbxID != "" {
+		params.Set("pbx_id", pbxID)
+	}
+	if numbers != "" {
+		params.Set("numbers", numbers)
+	}
 
 	var resp struct {
 		Status string                 `json:"status"`
@@ -318,7 +359,7 @@ func (c *Client) GetPBXInfo() (map[string]interface{}, error) {
 
 // SetWebhook sets a notification URL for events.
 func (c *Client) SetWebhook(urlStr string) (map[string]interface{}, error) {
-	method := "/pbx/webhooks/url/"
+	method := "/pbx/internal/webhooks/url/"
 	params := url.Values{}
 	params.Set("url", urlStr)
 
@@ -336,7 +377,7 @@ func (c *Client) SetWebhook(urlStr string) (map[string]interface{}, error) {
 
 // GetWebhook returns the current notification URL.
 func (c *Client) GetWebhook() (map[string]interface{}, error) {
-	method := "/pbx/webhooks/url/"
+	method := "/pbx/internal/webhooks/url/"
 	params := url.Values{}
 
 	var resp struct {

@@ -9,18 +9,12 @@ import (
 )
 
 // wantsJSON reports whether the current command invocation requested JSON output
-// via --json or --output=json. It checks both local and root persistent flags.
+// via --output=json flag.
 func wantsJSON(cmd *cobra.Command) bool {
 	if cmd == nil {
 		return false
 	}
-	if v, err := cmd.Flags().GetBool("json"); err == nil && v {
-		return true
-	}
 	if root := cmd.Root(); root != nil {
-		if v, err := root.PersistentFlags().GetBool("json"); err == nil && v {
-			return true
-		}
 		if of, err := root.PersistentFlags().GetString("output"); err == nil && of == "json" {
 			return true
 		}
@@ -49,4 +43,15 @@ func failCmd(cmd *cobra.Command, err error) error { // return type only to satis
 	}
 	os.Exit(1)
 	return err // unreachable
+}
+
+// getStringField safely extracts string fields from response maps
+func getStringField(m map[string]interface{}, key, defaultVal string) string {
+	if val, ok := m[key]; ok {
+		if s, ok := val.(string); ok {
+			return s
+		}
+		return fmt.Sprintf("%v", val)
+	}
+	return defaultVal
 }

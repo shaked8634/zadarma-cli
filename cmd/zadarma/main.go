@@ -43,9 +43,10 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&apiKey, "key", "k", "", "Zadarma API key")
 	rootCmd.PersistentFlags().StringVarP(&apiSecret, "secret", "s", "", "Zadarma API secret")
 	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format (text|json)")
-	// Provide a convenient global --json flag that commands can inherit
-	rootCmd.PersistentFlags().Bool("json", false, "Output JSON instead of text (alias to --output=json)")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
+
+	// Hide the explicit 'help' subcommand (users can still use --help)
+	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 
 	clientFactory := func() *client.Client {
 		return client.NewClient(apiKey, apiSecret, debug)
@@ -53,12 +54,11 @@ func main() {
 
 	rootCmd.AddCommand(commands.NewBalanceCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewSIPCmd(clientFactory))
-	rootCmd.AddCommand(commands.NewDIDCmd(clientFactory))
+	rootCmd.AddCommand(commands.NewPhoneCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewSMSCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewPBXCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewStatisticsCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewWebhookCmd(clientFactory))
-	rootCmd.AddCommand(commands.NewDirectCmd(clientFactory))
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
