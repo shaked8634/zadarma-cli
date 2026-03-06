@@ -23,6 +23,8 @@ func NewSMSCmd(factory ClientFactory) *cobra.Command {
 		Use:   "sms",
 		Short: "Send SMS messages and listen for incoming webhooks",
 		Long:  "Send SMS messages via Zadarma and receive incoming SMS via webhooks",
+		// Do not show Cobra usage when runtime/API errors occur; usage should be shown only for CLI syntax errors
+		SilenceUsage: true,
 	}
 
 	sendCmd := &cobra.Command{
@@ -209,6 +211,8 @@ Examples:
 
 	listenCmd.Flags().StringP("port", "p", "8080", "Port to listen on")
 	listenCmd.Flags().StringP("webhook", "w", "", "Webhook URL to register before listening")
+	// Silence usage for listen command
+	listenCmd.SilenceUsage = true
 
 	setWebhookCmd := &cobra.Command{
 		Use:   "set-webhook <WEBHOOK>",
@@ -280,6 +284,8 @@ Examples:
 	}
 
 	setWebhookCmd.Flags().StringP("port", "p", "8080", "Port to listen on")
+	// Silence usage for set-webhook command
+	setWebhookCmd.SilenceUsage = true
 
 	cmd.AddCommand(sendCmd)
 	cmd.AddCommand(sendersCmd)

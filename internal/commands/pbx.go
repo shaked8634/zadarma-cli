@@ -13,14 +13,16 @@ import (
 // NewPBXCmd creates the 'pbx' command group.
 func NewPBXCmd(factory ClientFactory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "pbx",
-		Short: "Manage PBX configuration",
-		Long:  "PBX configuration and management commands",
+		Use:          "pbx",
+		Short:        "Manage PBX configuration",
+		Long:         "PBX configuration and management commands",
+		SilenceUsage: true,
 	}
 
 	infoCmd := &cobra.Command{
-		Use:   "info",
-		Short: "Get PBX information",
+		Use:          "info",
+		Short:        "Get PBX information",
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput := wantsJSON(cmd)
 			c := factory()

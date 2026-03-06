@@ -14,9 +14,10 @@ type ClientFactory func() *client.Client
 // NewBalanceCmd creates the 'balance' command.
 func NewBalanceCmd(factory ClientFactory) *cobra.Command {
 	return &cobra.Command{
-		Use:   "balance",
-		Short: "Get account balance",
-		Long:  "Get your Zadarma account balance",
+		Use:          "balance",
+		Short:        "Get account balance",
+		Long:         "Get your Zadarma account balance",
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput, _ := cmd.Flags().GetBool("json")
 			if !jsonOutput {

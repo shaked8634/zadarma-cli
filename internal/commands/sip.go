@@ -16,12 +16,15 @@ func NewSIPCmd(factory ClientFactory) *cobra.Command {
 		Use:   "sip",
 		Short: "Manage SIP accounts",
 		Long:  "SIP account management commands",
+		// Do not show usage on API/runtime errors
+		SilenceUsage: true,
 	}
 
 	cmd.AddCommand(
 		&cobra.Command{
-			Use:   "list",
-			Short: "List SIP accounts",
+			Use:          "list",
+			Short:        "List SIP accounts",
+			SilenceUsage: true,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				jsonOutput := wantsJSON(cmd)
 				c := factory()
@@ -46,9 +49,10 @@ func NewSIPCmd(factory ClientFactory) *cobra.Command {
 			},
 		},
 		&cobra.Command{
-			Use:   "info <ID>",
-			Short: "Get SIP account info",
-			Args:  cobra.ExactArgs(1),
+			Use:          "info <ID>",
+			Short:        "Get SIP account info",
+			Args:         cobra.ExactArgs(1),
+			SilenceUsage: true,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				jsonOutput := wantsJSON(cmd)
 				c := factory()

@@ -17,9 +17,10 @@ func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
 	var costOnly bool
 
 	cmd := &cobra.Command{
-		Use:   "statistics",
-		Short: "Get call statistics",
-		Long:  "Get call statistics from your Zadarma account",
+		Use:          "statistics",
+		Short:        "Get call statistics",
+		Long:         "Get call statistics from your Zadarma account",
+		SilenceUsage: true,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			const timeFormat = "2006-01-02 15:04:05"
 			if start != "" {

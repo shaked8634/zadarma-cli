@@ -24,7 +24,7 @@ func wantsJSON(cmd *cobra.Command) bool {
 
 // failCmd prints an error in the appropriate format and exits with status 1.
 // When JSON output is requested, it prints: {"status":"error","message":"..."}
-// Otherwise, it prints a human-friendly text error.
+// Otherwise, it prints a human-friendly text error to stderr.
 func failCmd(cmd *cobra.Command, err error) error { // return type only to satisfy RunE signature; never returns
 	if err == nil {
 		os.Exit(1)

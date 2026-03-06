@@ -29,11 +29,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 
 				result, err := c.SetWebhook(webhookURL)
 				if err != nil {
-					// Print error without "Usage:" text for API errors
-					if _, writeErr := fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err); writeErr != nil {
-						return writeErr
-					}
-					return err
+					return failCmd(cmd, err)
 				}
 
 				if jsonOutput {
@@ -53,6 +49,8 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 			return nil
 		},
 	}
+	// Do not print Cobra usage on API/runtime errors; only show usage for syntax errors
+	cmd.SilenceUsage = true
 
 	setCmd := &cobra.Command{
 		Use:   "set [url]",
@@ -69,11 +67,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 
 			result, err := c.SetWebhook(webhookURL)
 			if err != nil {
-				// Print error without "Usage:" text for API errors
-				if _, writeErr := fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err); writeErr != nil {
-					return writeErr
-				}
-				return err
+				return failCmd(cmd, err)
 			}
 
 			if jsonOutput {

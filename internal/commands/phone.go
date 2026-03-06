@@ -17,6 +17,8 @@ func NewPhoneCmd(factory ClientFactory) *cobra.Command {
 		Use:   "phone",
 		Short: "Manage phone numbers (DIDs and virtual numbers)",
 		Long:  "Commands for managing owned phone numbers and exploring virtual number availability.",
+		// Do not show usage on API/runtime errors
+		SilenceUsage: true,
 	}
 
 	cmd.AddCommand(
@@ -38,6 +40,7 @@ func newPhoneListCmd(factory ClientFactory) *cobra.Command {
 
 If no numbers are specified, lists all phone numbers.
 If one or more numbers are specified, retrieves information for those specific numbers.`,
+		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput := wantsJSON(cmd)
 			c := factory()
