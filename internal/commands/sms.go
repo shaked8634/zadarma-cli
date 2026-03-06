@@ -168,8 +168,25 @@ Examples:
 				port = "8080"
 			}
 
-			// Fetch current webhook URL first
+			// New: webhook flag to register a webhook before listening
+			webhookFlag, _ := cmd.Flags().GetString("webhook")
+
 			c := factory()
+
+			if webhookFlag != "" {
+				// Register the webhook and enable SMS hooks
+				fmt.Printf("Registering webhook URL: %s\n", webhookFlag)
+				if _, err := c.SetWebhook(webhookFlag); err != nil {
+					return failCmd(cmd, fmt.Errorf("failed to set webhook URL: %w", err))
+				}
+				fmt.Println("✓ Webhook registered")
+				if _, err := c.SetWebhookHooks(true); err != nil {
+					return failCmd(cmd, fmt.Errorf("failed to enable sms hooks: %w", err))
+				}
+				fmt.Println("✓ SMS webhooks enabled")
+			}
+
+			// Fetch current webhook URL first
 			webhookInfo, err := c.GetWebhooks()
 			if err != nil {
 				return failCmd(cmd, fmt.Errorf("failed to fetch webhook info: %w", err))
@@ -191,6 +208,7 @@ Examples:
 	}
 
 	listenCmd.Flags().StringP("port", "p", "8080", "Port to listen on")
+	listenCmd.Flags().StringP("webhook", "w", "", "Webhook URL to register before listening")
 
 	setWebhookCmd := &cobra.Command{
 		Use:   "set-webhook <WEBHOOK>",
