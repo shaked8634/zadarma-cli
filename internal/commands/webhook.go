@@ -29,6 +29,10 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 
 				result, err := c.SetWebhook(webhookURL)
 				if err != nil {
+					// Print error without "Usage:" text for API errors
+					if _, writeErr := fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err); writeErr != nil {
+						return writeErr
+					}
 					return err
 				}
 
@@ -65,6 +69,10 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 
 			result, err := c.SetWebhook(webhookURL)
 			if err != nil {
+				// Print error without "Usage:" text for API errors
+				if _, writeErr := fmt.Fprintf(cmd.ErrOrStderr(), "Error: %v\n", err); writeErr != nil {
+					return writeErr
+				}
 				return err
 			}
 

@@ -172,22 +172,14 @@ Start the SMS webhook daemon:
 
 Before using `sms listen`, you must:
 
-1. **Expose the local port** via ngrok or similar tunnel service:
+1. **Set the webhook URL** via the API:
    ```bash
-   ngrok http 8080
-   # This gives you a public URL like: https://abc123.ngrok.io
+   ./zadarma-cli webhook set <WEBHOOK_URL>
    ```
 
-2. **Set the webhook URL** via the API:
-   ```bash
-   ./zadarma-cli webhook set https://abc123.ngrok.io
-   # Or use the old command for compatibility:
-   ./zadarma-cli webhook set https://abc123.ngrok.io
-   ```
+2. **Verify the webhook** in the Zadarma account dashboard (optional).
 
-3. **Verify the webhook** in the Zadarma account dashboard (optional).
-
-4. **Start the daemon**:
+3. **Start the daemon**:
    ```bash
    ./zadarma-cli sms listen --port 8080
    ```
@@ -481,3 +473,79 @@ go build ./...
 # If all pass, commit
 git commit -m "description of changes"
 ```
+
+## SMS Webhook Implementation
+
+### Design Pattern: List vs Info Commands
+
+The CLI follows a consistent pattern for all commands:
+
+- `sms listen` - Listen for incoming SMS webhooks (requires webhook already configured)
+- `sms set-webhook <URL>` - Register webhook URL and immediately start listening
+
+### SMS Webhook Flow
+
+The `sms` command group has the following structure:
+
+**Prerequisites to receive SMS:**
+
+1. Register the webhook URL with Zadarma
+2. Enable SMS webhook notifications
+
+**Two approaches:**
+
+**Option A: Manual setup** (existing webhook)
+
+```bash
+zadarma-cli sms listen --port 8080
+```
+
+- Requires webhook already configured in Zadarma
+- Exits with error if no webhook URL is configured
+- Useful when webhook persists across sessions
+
+**Option B: One-shot setup** (fresh webhook)
+
+```bash
+zadarma-cli sms set-webhook https://my-tunnel.loca.lt --port 8080
+```
+
+- Registers webhook URL
+- Enables SMS notifications
+- Immediately starts listening
+- Combines webhook setup and listening
+
+### Code Reuse Pattern
+
+Both commands use the shared `startSMSListener()` helper function to:
+
+- Set up HTTP listener on specified port
+- Handle Zadarma verification requests (zd_echo)
+- Parse and display incoming SMS events
+- Support both text and JSON output formats
+
+This avoids duplication and ensures consistent behavior across both listen paths.
+
+### Implementation Details
+
+**Webhook URL Validation:**
+
+- Uses `url.ParseRequestURI()` to validate webhook URLs
+- Ensures valid URL format before sending to API
+
+**Response Parsing:**
+
+- Normalizes API responses to handle both direct fields and nested data
+- Checks status field for success/error conditions
+
+**Listener HTTP Handler:**
+
+- Responds to GET requests with zd_echo parameter (verification)
+- Processes POST requests containing SMS events
+- Returns HTTP 200 with "OK" on success
+
+**Output Modes:**
+
+- **Text mode (default):** Formatted table with FROM, TO, TEXT, TIME fields
+- **JSON mode:** Raw JSON from webhook payload
+

@@ -163,7 +163,9 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to execute request: %w", err)
 	}
 	defer func() {
-		_ = resp.Body.Close()
+		if err := resp.Body.Close(); err != nil {
+			log.Debugf("Error closing response body: %v", err)
+		}
 	}()
 
 	// Read response body
