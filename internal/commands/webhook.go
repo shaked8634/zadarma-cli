@@ -48,9 +48,9 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 			_ = cmd.Help()
 			return nil
 		},
+		// Do not print Cobra usage on API/runtime errors; only show usage for syntax errors
+		SilenceUsage: true,
 	}
-	// Do not print Cobra usage on API/runtime errors; only show usage for syntax errors
-	cmd.SilenceUsage = true
 
 	setCmd := &cobra.Command{
 		Use:   "set [url]",
@@ -81,6 +81,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 			}
 			return nil
 		},
+		SilenceUsage: true,
 	}
 
 	getCmd := &cobra.Command{
@@ -96,7 +97,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 
 			result, err := c.GetWebhooks()
 			if err != nil {
-				return err
+				return failCmd(cmd, err)
 			}
 
 			if jsonOutput {
@@ -111,6 +112,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 			}
 			return nil
 		},
+		SilenceUsage: true,
 	}
 
 	listenCmd := &cobra.Command{
@@ -160,6 +162,7 @@ func NewWebhookCmd(factory ClientFactory) *cobra.Command {
 			fmt.Println("Note: You must expose this port (e.g., via ngrok) and set the URL using 'zadarma webhook set'")
 			return http.ListenAndServe(":"+port, nil)
 		},
+		SilenceUsage: true,
 	}
 
 	listenCmd.Flags().StringP("port", "p", "8080", "Port to listen on")

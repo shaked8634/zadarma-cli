@@ -1,0 +1,18 @@
+{
+  "status": "success",
+  "messages": 1,
+  "sms_detalization": [
+    {
+      "callerid": "+123456789012",
+      "number": "123456789012",
+      "cost": 0.2,
+      "cost_min": 0.2,
+      "cost_max": 0.2,
+      "message": "Test",
+      "parts": 1
+    }
+  ],
+  "denied_numbers": [],
+  "cost": 0.2,
+  "currency": "EUR"
+}

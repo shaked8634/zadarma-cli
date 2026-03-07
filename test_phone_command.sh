@@ -21,11 +21,11 @@ echo "..."
 echo ""
 
 echo "3. Testing: zadarma-cli phone list <number> (specific number)"
-./zadarma-cli phone list 972556620707
+./zadarma-cli phone list 123456789012
 echo ""
 
 echo "4. Testing: zadarma-cli phone list <multiple numbers>"
-./zadarma-cli phone list 972556620707 19293091254 --output json | head -15
+./zadarma-cli phone list 123456789012 19293091254 --output json | head -15
 echo "..."
 echo ""
 

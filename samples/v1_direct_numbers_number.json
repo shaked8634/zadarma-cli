@@ -1,7 +1,7 @@
 {
   "status": "success",
   "info": {
-    "number": "972556620707",
+    "number": "123456789012",
     "direction_id": 3044,
     "status": "on",
     "country": "Israel",
@@ -17,7 +17,7 @@
     "receive_sms": "true",
     "group_id": 0,
     "is_on_test": "false",
-    "sip": "649222",
+    "sip": "123456",
     "sip_name": "SIP"
   }
 }

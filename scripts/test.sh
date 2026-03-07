@@ -4,7 +4,7 @@ set -euo pipefail
 export ZADARMA_API_KEY=acea883af4593167fe4a
 export ZADARMA_API_SECRET=eec23d878ff592bb7a34
 
-PBX_ID=649222
+PBX_ID=123456
 
 
 #cd .. && go build -o zadarma-cli ./cmd/zadarma
@@ -24,7 +24,7 @@ echo "=== Testing SIP list (GET) ==="
 
 echo ""
 echo "=== Testing SIP info (GET) ==="
-./zadarma-cli sip info 649222
+./zadarma-cli sip info 123456
 
 echo ""
 echo "=== Testing phone list (GET) ==="
@@ -32,7 +32,7 @@ echo "=== Testing phone list (GET) ==="
 
 echo ""
 echo "=== Testing phone number (GET with validation) ==="
-./zadarma-cli phone number 972556620707
+./zadarma-cli phone number 123456789012
 
 echo ""
 echo "=== Testing phone countries list (GET) ==="
@@ -52,6 +52,6 @@ echo "=== Testing webhook get (GET) ==="
 
 echo ""
 echo "=== Testing webhook get (GET) ==="
-./zadarma-cli sms senders --phones 972556620707
+./zadarma-cli sms senders --phones 123456789012
 
 cd -

@@ -16,8 +16,8 @@ func (c *Client) SendSMS(phoneNumber, message, sender string) (map[string]interf
 		params.Set("caller_id", sender)
 	}
 
-	// Use a generic map to accommodate different possible API shapes
-	var raw map[string]any
+	// Use a generic map to get the full API response
+	var raw map[string]interface{}
 	if err := c.Post(method, params, nil, &raw); err != nil {
 		return nil, err
 	}
@@ -30,33 +30,8 @@ func (c *Client) SendSMS(phoneNumber, message, sender string) (map[string]interf
 		return nil, fmt.Errorf("API error: %s", status)
 	}
 
-	// Prefer nested data map if present; otherwise, normalize common top-level fields
-	out := map[string]any{}
-	if d, ok := raw["data"].(map[string]any); ok && d != nil {
-		out = d
-	}
-	// Normalize id field
-	if _, ok := out["id"]; !ok || out["id"] == nil {
-		if v, ok := raw["id"]; ok {
-			out["id"] = v
-		} else if v, ok := raw["message_id"]; ok {
-			out["id"] = v
-		} else if v, ok := raw["sms_id"]; ok {
-			out["id"] = v
-		}
-	}
-	// Normalize status field for SMS send result if present at alternative keys
-	if _, ok := out["status"]; !ok || out["status"] == nil {
-		if v, ok := raw["sms_status"]; ok {
-			out["status"] = v
-		} else if v, ok := raw["message_status"]; ok {
-			out["status"] = v
-		} else if v, ok := raw["status"]; ok { // fallback to overall status
-			out["status"] = v
-		}
-	}
-
-	return out, nil
+	// Return the full response for complete output
+	return raw, nil
 }
 
 // GetSMSSenders returns the list of valid SMS senders to a given number.

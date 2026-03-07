@@ -31,9 +31,13 @@ func TestSendSMS(t *testing.T) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		// Return the full response (what the real API returns)
 		_, _ = w.Write([]byte(`{
 			"status":"success",
-			"data":{"id":"msg123","status":"sent","timestamp":"2025-02-26T07:42:00Z"}
+			"messages":1,
+			"cost":0.2,
+			"currency":"EUR",
+			"sms_detalization":[{"callerid":"+14155555555","number":"14155555555","cost":0.2,"parts":1,"message":"Hello World"}]
 		}`))
 	}))
 	defer server.Close()
@@ -46,12 +50,17 @@ func TestSendSMS(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	if result["id"] != "msg123" {
-		t.Errorf("Expected id msg123, got %v", result["id"])
+	// Verify full response is returned
+	if result["status"] != "success" {
+		t.Errorf("Expected status success, got %v", result["status"])
 	}
 
-	if result["status"] != "sent" {
-		t.Errorf("Expected status sent, got %v", result["status"])
+	if messages, ok := result["messages"].(float64); !ok || messages != 1 {
+		t.Errorf("Expected messages 1, got %v", result["messages"])
+	}
+
+	if cost, ok := result["cost"].(float64); !ok || cost != 0.2 {
+		t.Errorf("Expected cost 0.2, got %v", result["cost"])
 	}
 }
 

@@ -48,13 +48,19 @@ func (s *Signer) Sign(method string, params url.Values) string {
 	// Step 4: HMAC-SHA1 with secret key
 	hmacResult := s.hmacSHA1(signString)
 
-	// Step 5: Base64 encode the hex-encoded HMAC (matches Python api.py)
+	// Step 5 variants for debugging
+	// hex->base64 (original approach used by this client)
 	hashHex := hex.EncodeToString(hmacResult)
-	bts := []byte(hashHex)
-	signature := base64.StdEncoding.EncodeToString(bts)
-	log.Debugf("signature=%q", signature)
+	hexBts := []byte(hashHex)
+	hexBase64 := base64.StdEncoding.EncodeToString(hexBts)
+	log.Debugf("signature(hex->base64)=%q", hexBase64)
 
-	return signature
+	// raw-hmac -> base64 (alternative)
+	rawBase64 := base64.StdEncoding.EncodeToString(hmacResult)
+	log.Debugf("signature(raw-hmac->base64)=%q", rawBase64)
+
+	// Return hex->base64 to preserve compatibility with GET requests and existing behavior.
+	return hexBase64
 }
 
 // AuthHeader generates the full Authorization header value.

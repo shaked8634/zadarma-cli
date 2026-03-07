@@ -18,7 +18,7 @@ func TestGetDirectNumbers(t *testing.T) {
 		_, _ = w.Write([]byte(`{
 			"status":"success",
 			"info":[
-				{"number":"972556620707","type":"voice","status":"on","country":"Israel"},
+				{"number":"123456789012","type":"voice","status":"on","country":"Israel"},
 				{"number":"19293091254","type":"fax","status":"on","country":"United States"}
 			]
 		}`))
@@ -37,8 +37,8 @@ func TestGetDirectNumbers(t *testing.T) {
 		t.Errorf("Expected 2 DIDs, got %d", len(dids))
 	}
 
-	if dids[0]["number"] != "972556620707" {
-		t.Errorf("Expected number 972556620707, got %v", dids[0]["number"])
+	if dids[0]["number"] != "123456789012" {
+		t.Errorf("Expected number 123456789012, got %v", dids[0]["number"])
 	}
 }
 

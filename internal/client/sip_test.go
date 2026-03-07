@@ -18,7 +18,7 @@ func TestGetSIPs(t *testing.T) {
 		_, _ = w.Write([]byte(`{
 			"status":"success",
 			"sips":[
-				{"id":"649222","display_name":"SIP","lines":3},
+				{"id":"123456","display_name":"SIP","lines":3},
 				{"id":"649223","display_name":"SIP2","lines":2}
 			],
 			"left":5
@@ -38,8 +38,8 @@ func TestGetSIPs(t *testing.T) {
 		t.Errorf("Expected 2 SIPs, got %d", len(sips))
 	}
 
-	if sips[0]["id"] != "649222" {
-		t.Errorf("Expected id 649222, got %v", sips[0]["id"])
+	if sips[0]["id"] != "123456" {
+		t.Errorf("Expected id 123456, got %v", sips[0]["id"])
 	}
 
 	if sips[0]["display_name"] != "SIP" {

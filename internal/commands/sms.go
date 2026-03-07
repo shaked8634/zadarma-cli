@@ -55,23 +55,24 @@ func NewSMSCmd(factory ClientFactory) *cobra.Command {
 				out, _ := json.MarshalIndent(result, "", "  ")
 				fmt.Println(string(out))
 			} else {
-				// Safely extract normalized fields
-				status := ""
-				if v, ok := result["status"]; ok && v != nil {
-					status = fmt.Sprint(v)
-				} else {
-					// If missing, assume success because API returned HTTP 200 and client validated status
-					status = "success"
+				// Show useful fields from the full response
+				if messages, ok := result["messages"].(float64); ok {
+					fmt.Printf("Messages sent: %.0f\n", messages)
 				}
-				msgID := ""
-				if v, ok := result["id"]; ok && v != nil {
-					msgID = fmt.Sprint(v)
+				if cost, ok := result["cost"].(float64); ok {
+					currency, _ := result["currency"].(string)
+					fmt.Printf("Cost: %.2f %s\n", cost, currency)
 				}
-				fmt.Printf("SMS Status: %s", status)
-				if msgID != "" {
-					fmt.Printf(" (Message ID: %s)", msgID)
+				if det, ok := result["sms_detalization"].([]interface{}); ok && len(det) > 0 {
+					if det0, ok := det[0].(map[string]interface{}); ok {
+						if parts, ok := det0["parts"].(float64); ok {
+							fmt.Printf("Parts: %.0f\n", parts)
+						}
+						if msg, ok := det0["message"].(string); ok {
+							fmt.Printf("Message: %s\n", msg)
+						}
+					}
 				}
-				fmt.Println()
 			}
 			return nil
 		},

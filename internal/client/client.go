@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -101,17 +102,43 @@ func (c *Client) Post(method string, params url.Values, body io.Reader, result i
 	return c.request("POST", method, params, body, result)
 }
 
-// request performs an HTTP request with proper Zadarma authentication.
+// PostJSON sends a JSON-encoded body but uses an explicit empty signingParams (per API rules)
+// so the signature is calculated over empty params while the body is JSON.
+func (c *Client) PostJSON(method string, jsonBody interface{}, result interface{}) error {
+	b, err := json.Marshal(jsonBody)
+	if err != nil {
+		return fmt.Errorf("failed to marshal json body: %w", err)
+	}
+	// For PostJSON, we DO NOT include these fields in signingParams; signature is based on empty params
+	return c.doRequest(http.MethodPost, method, nil, bytes.NewReader(b), result, url.Values{}, "application/json")
+}
+
+// request performs an HTTP request with proper Zadarma authentication using params for signing.
 func (c *Client) request(httpMethod, apiMethod string, params url.Values, body io.Reader, result interface{}) error {
+	// By default signingParams == params, and content type for POST/PUT is form-encoded when appropriate
+	contentType := ""
+	if httpMethod == http.MethodPost || httpMethod == http.MethodPut {
+		// If body is nil and params exist, we'll send form-encoded body and set content-type accordingly in doRequest
+		contentType = "application/x-www-form-urlencoded"
+	}
+	return c.doRequest(httpMethod, apiMethod, params, body, result, params, contentType)
+}
+
+// doRequest is the underlying HTTP request implementation. signingParams are used to compute the Auth header
+// (they do NOT have to match the actual HTTP body); params is used to build the URL query string for GET requests
+// and optionally to form-encode the body for POST when body==nil.
+func (c *Client) doRequest(httpMethod, apiMethod string, params url.Values, body io.Reader, result interface{}, signingParams url.Values, contentType string) error {
 	// Initialize params if nil
 	if params == nil {
 		params = url.Values{}
+	}
+	if signingParams == nil {
+		signingParams = url.Values{}
 	}
 
 	// Build URL and (possibly) request body depending on HTTP method
 	fullURL := c.baseURL + apiMethod
 	reqBody := body
-	signingParams := params // params to use for signature
 
 	if httpMethod == http.MethodGet {
 		if len(params) > 0 {
@@ -120,15 +147,18 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 	} else {
 		// For non-GET methods send params in the body as x-www-form-urlencoded unless a body is supplied
 		if reqBody == nil && len(params) > 0 {
-			reqBody = strings.NewReader(params.Encode())
-			// Note: For signature, we still use the params (same as GET)
-			// The params go in the body for POST, but are still included in the signature
-			// signingParams remains as params (not empty)
+			encoded := params.Encode()
+			reqBody = strings.NewReader(encoded)
+			// If contentType not explicitly set, default to form-encoded
+			if contentType == "" {
+				contentType = "application/x-www-form-urlencoded"
+			}
 		}
 	}
 
 	log.Debugf("Request: %s %s", httpMethod, fullURL)
 	log.Debugf("paramsStr=%q", params.Encode())
+	log.Debugf("signingParamsStr=%q", signingParams.Encode())
 
 	// Create request
 	req, err := http.NewRequest(httpMethod, fullURL, reqBody)
@@ -136,16 +166,25 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 		return fmt.Errorf("failed to create request: %w", err)
 	}
 
+	// Log the actual body content for debugging (whether derived from params or provided body)
+	if reqBody != nil {
+		// If we created the body from params (body == nil), log params.Encode(); otherwise we log that body was provided
+		if body == nil {
+			log.Debugf("Request body (from params): %s", params.Encode())
+		} else {
+			log.Debugf("Request body provided (reader)")
+		}
+	}
+
 	// Sign request with full path including /v1
-	// For POST/PUT with form body, signingParams will be empty (per API spec)
 	signingPath := APIVersion + apiMethod
 	authHeader := c.signer.AuthHeader(signingPath, signingParams)
 	// Correct header name is 'Authorization'
 	req.Header.Set("Authorization", authHeader)
 
-	// Content-Type for POST/PUT: always use form-encoded (Zadarma requirement)
-	if httpMethod == http.MethodPost || httpMethod == http.MethodPut {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// Set Content-Type if present
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
 	}
 
 	log.Debugf("Authorization: %s", authHeader)
@@ -183,8 +222,10 @@ func (c *Client) request(httpMethod, apiMethod string, params url.Values, body i
 	}
 
 	// Parse JSON response
-	if err := json.Unmarshal(respBody, result); err != nil {
-		return fmt.Errorf("failed to parse JSON: %w", err)
+	if result != nil {
+		if err := json.Unmarshal(respBody, result); err != nil {
+			return fmt.Errorf("failed to parse JSON: %w", err)
+		}
 	}
 
 	log.Debugf("Parsed response successfully")

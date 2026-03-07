@@ -64,7 +64,9 @@ func (c *Client) GetPBXInfo(pbxID, numbers string) (map[string]interface{}, erro
 	return norm, nil
 }
 
-// SetWebhook sets a notification URL for events.
+// SetWebhook sets a notification URL for events. It sends the URL in the JSON body
+// but computes the signature over signingParams that include the url value so the
+// Auth header matches API expectations.
 func (c *Client) SetWebhook(urlStr string) (map[string]interface{}, error) {
 	// Validate webhook URL
 	if err := ValidateWebhookURL(urlStr); err != nil {
@@ -72,17 +74,23 @@ func (c *Client) SetWebhook(urlStr string) (map[string]interface{}, error) {
 	}
 
 	method := "/pbx/webhooks/url/"
-	params := url.Values{}
-	params.Set("url", urlStr)
 
 	var resp struct {
 		Status string                 `json:"status"`
 		Data   map[string]interface{} `json:"data"`
 	}
 
-	// Send as form-encoded parameters (not JSON body)
+	// Build params that include the url value for both the body and the signature
+	params := url.Values{}
+	params.Set("url", urlStr)
+
+	// Use Post so the params are form-encoded in the body and used for signing
 	if err := c.Post(method, params, nil, &resp); err != nil {
 		return nil, err
+	}
+
+	if resp.Status != "success" {
+		return nil, fmt.Errorf("API error: %s", resp.Status)
 	}
 
 	return resp.Data, nil

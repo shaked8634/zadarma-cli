@@ -116,7 +116,7 @@ func TestSetWebhook(t *testing.T) {
 			t.Errorf("Expected POST method, got %s", r.Method)
 		}
 
-		// Check Content-Type header
+		// Check Content-Type header - expect form-encoded
 		if ct := r.Header.Get("Content-Type"); ct != "application/x-www-form-urlencoded" {
 			t.Errorf("Expected Content-Type application/x-www-form-urlencoded, got %s", ct)
 		}

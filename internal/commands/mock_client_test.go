@@ -11,13 +11,6 @@ func (m *MockClient) GetBalance() (interface{}, string, error) {
 	return m.balance, m.currency, m.err
 }
 
-func (m *MockClient) GetPrice(number string) (map[string]interface{}, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return map[string]interface{}{"price": "0.05", "currency": "USD"}, nil
-}
-
 func (m *MockClient) GetSIPs() ([]map[string]interface{}, error) {
 	if m.err != nil {
 		return nil, m.err
@@ -27,18 +20,11 @@ func (m *MockClient) GetSIPs() ([]map[string]interface{}, error) {
 	}, nil
 }
 
-func (m *MockClient) GetSIPStatus(id string) (bool, error) {
-	if m.err != nil {
-		return false, m.err
-	}
-	return true, nil
-}
-
 func (m *MockClient) SendSMS(phoneNumber, message, sender string) (map[string]interface{}, error) {
 	if m.err != nil {
 		return nil, m.err
 	}
-	return map[string]interface{}{"id": "msg123", "status": "sent"}, nil
+	return map[string]interface{}{"status": "success", "messages": 1}, nil
 }
 
 func (m *MockClient) GetSMSSenders(phones string) ([]map[string]interface{}, error) {
@@ -55,7 +41,7 @@ func (m *MockClient) GetDirectNumbers(numbers ...string) ([]map[string]interface
 		return nil, m.err
 	}
 	return []map[string]interface{}{
-		{"number": "972556620707", "country": "Israel", "status": "on"},
+		{"number": "123456789012", "country": "Israel", "status": "on"},
 	}, nil
 }
 
@@ -91,6 +77,27 @@ func (m *MockClient) GetPBXInfo(pbxID, numbers string) (map[string]interface{}, 
 	return map[string]interface{}{"name": "My PBX", "status": "active"}, nil
 }
 
+func (m *MockClient) SetWebhook(urlStr string) (map[string]interface{}, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return map[string]interface{}{"url": urlStr, "status": "set"}, nil
+}
+
+func (m *MockClient) GetWebhooks() (map[string]interface{}, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return map[string]interface{}{"url": "https://example.com/webhook", "hooks": map[string]string{"sms": "true"}}, nil
+}
+
+func (m *MockClient) SetWebhookHooks(enableSMS bool) (map[string]interface{}, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	return map[string]interface{}{"hooks": map[string]string{"sms": "true"}}, nil
+}
+
 func (m *MockClient) GetPBXInternalStatus(pbxID string) (map[string]interface{}, error) {
 	if m.err != nil {
 		return nil, m.err
@@ -103,20 +110,6 @@ func (m *MockClient) GetPBXInternalInfo(pbxID string) (map[string]interface{}, e
 		return nil, m.err
 	}
 	return map[string]interface{}{"pbx_id": pbxID, "title": "Main Office"}, nil
-}
-
-func (m *MockClient) SetWebhook(urlStr string) (map[string]interface{}, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return map[string]interface{}{"url": urlStr, "status": "set"}, nil
-}
-
-func (m *MockClient) GetWebhook() (map[string]interface{}, error) {
-	if m.err != nil {
-		return nil, m.err
-	}
-	return map[string]interface{}{"url": "https://example.com/webhook", "status": "active"}, nil
 }
 
 func (m *MockClient) GetStatistics(startTime, endTime, sip string, costOnly bool) (map[string]interface{}, error) {

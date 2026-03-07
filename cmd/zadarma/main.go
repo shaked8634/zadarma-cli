@@ -38,6 +38,10 @@ func main() {
 				os.Exit(1)
 			}
 		},
+		// Globally silence Cobra's usage and error printing for runtime/API errors.
+		// We handle printing/exit explicitly via failCmd so usage is shown only on syntax errors.
+		SilenceUsage:  true,
+		SilenceErrors: true,
 	}
 
 	rootCmd.PersistentFlags().StringVarP(&apiKey, "key", "k", "", "Zadarma API key")
