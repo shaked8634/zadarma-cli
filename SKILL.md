@@ -66,16 +66,22 @@ Or pass them via flags:
 
 ### Webhook Management
 
-**Set webhook URL:**
+**Get current webhook URL:**
 ```bash
-./zadarma webhook set "https://your-domain.com/webhook"
+./zadarma webhook get
 ```
 
 **Listen for SMS webhooks (local testing):**
 ```bash
-./zadarma webhook listen --port 8080
+./zadarma sms listen --port 8080
 ```
-*Note: You'll need to expose the port (e.g., via ngrok) and set the public URL with `webhook set`.*
+*Note: Requires a webhook URL to be configured in Zadarma first.*
+
+**Set webhook URL:**
+```bash
+./zadarma webhook set "https://your-domain.com/webhook"
+```
+⚠️ **WIP**: This endpoint returns "Wrong parameters" from the API. Investigating with Zadarma support.
 
 ### JSON Output
 
@@ -92,8 +98,10 @@ Add `--json` flag for machine-readable output:
 - ✅ DID (phone number) management
 - ✅ SMS sending
 - ✅ PBX information
-- ✅ Webhook configuration & listening
+- ✅ Webhook configuration (get only)
+- ⚠️ Webhook configuration (set) - WIP: investigating API issue
 - ✅ Statistics retrieval
+- ⚠️ SMS webhook listening - requires working webhook set
 
 ## 🛠️ Development
 

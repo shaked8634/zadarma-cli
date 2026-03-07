@@ -9,6 +9,8 @@ A lightweight Go command-line interface for the Zadarma VoIP API.
 - Debug mode with `-d` / `--debug`
 - Minimal dependencies
 
+> ⚠️ **Note**: Webhook URL setting (`webhook set`) is currently not working due to API issue. awaiting response from Zadarma support.
+
 ## Installation
 
 ```bash
@@ -64,17 +66,18 @@ zadarma sip list
 
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `balance` | Get account balance |
-| `sip list` | List SIP accounts |
-| `did list` | List phone numbers |
-| `sms send --phone <num> --message <text>` | Send SMS |
-| `pbx info` | Get PBX configuration |
-| `statistics` | Get call statistics |
-| `webhook set <url>` | Set webhook URL |
-| `webhook get` | Get current webhook URL |
-| `webhook listen` | Start local webhook listener |
+| Command | Description | Status |
+|---------|-------------|--------|
+| `balance` | Get account balance | ✅ |
+| `sip list` | List SIP accounts | ✅ |
+| `did list` | List phone numbers | ✅ |
+| `sms send --phone <num> --message <text>` | Send SMS | ✅ |
+| `pbx info` | Get PBX configuration | ✅ |
+| `statistics` | Get call statistics | ✅ |
+| `webhook get` | Get current webhook URL | ✅ |
+| `webhook set <url>` | Set webhook URL | ⚠️ WIP |
+| `sms listen` | Listen for incoming SMS | ⚠️ depends on webhook set |
+| `sms senders` | Get valid SMS senders | ✅ |
 
 ## Global Flags
 
@@ -96,6 +99,8 @@ MIT
 
 ## Todo
 
-- [ ] Support receiving SMS via webhook
+- [x] Send SMS via CLI
+- [ ] Fix webhook set endpoint (WIP - awaiting Zadarma support)
+- [ ] Support receiving SMS via webhook (depends on webhook set)
 - [ ] Support making a call via CLI
 - [ ] Support receiving calls via webhook
