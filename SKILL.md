@@ -1,118 +1,113 @@
 ---
 name: zadarma-cli
-description: OpenClaw skill for the Zadarma VoIP API CLI tool. Use this skill to interact with Zadarma's VoIP services via command line.
+description: OpenClaw skill for the Zadarma VoIP API CLI tool. Use this skill to query Zadarma account state and configure SMS webhooks.
 ---
 
 # Zadarma CLI Skill
 
-This skill provides OpenClaw agents with knowledge about the `zadarma-cli` tool, a Go-based CLI for the Zadarma VoIP API.
+This skill describes the current `zadarma-cli` command set in this repository.
 
-## 📦 Installation
+## Binary
 
-The `zadarma` binary is included in this repository (built for Linux amd64). No separate installation needed.
+Build and run:
 
 ```bash
-# Clone the repository
-git clone https://forgejo.o-st.dev/voidclaw/zadarma-cli.git
-cd zadarma-cli
-
-# The binary is already built
-./zadarma --help
+go build -o zadarma-cli ./cmd/zadarma
+./zadarma-cli --help
 ```
 
-## 🔐 Authentication
+## Authentication
 
-Set your Zadarma API credentials as environment variables:
+Prefer environment variables:
 
 ```bash
 export ZADARMA_API_KEY="your_api_key"
 export ZADARMA_API_SECRET="your_api_secret"
 ```
 
-Or pass them via flags:
+Flags also work:
 
 ```bash
-./zadarma --key "KEY" --secret "SECRET" balance
+./zadarma-cli --key "KEY" --secret "SECRET" balance
 ```
 
-## 🚀 Usage
+## Agent Output Rule
 
-### Basic Commands
-
-**Check balance:**
-```bash
-./zadarma balance
-```
-
-**List phone numbers (DIDs):**
-```bash
-./zadarma did list
-```
-
-**List SIP accounts:**
-```bash
-./zadarma sip list
-```
-
-**Send SMS:**
-```bash
-./zadarma sms send --phone "+1234567890" --message "Hello from Zadarma CLI"
-```
-
-**Get PBX info:**
-```bash
-./zadarma pbx info
-```
-
-### Webhook Management
-
-**Get current webhook URL:**
-```bash
-./zadarma webhook get
-```
-
-**Listen for SMS webhooks (local testing):**
-```bash
-./zadarma sms listen --port 8080
-```
-*Note: Requires a webhook URL to be configured in Zadarma first.*
-
-**Set webhook URL:**
-```bash
-./zadarma webhook set "https://your-domain.com/webhook"
-```
-⚠️ **WIP**: This endpoint returns "Wrong parameters" from the API. Investigating with Zadarma support.
-
-### JSON Output
-
-Add `--json` flag for machine-readable output:
+When using this CLI as an agent, always request machine-readable output:
 
 ```bash
-./zadarma did list --json
+./zadarma-cli --output json <command>
 ```
 
-## 📚 API Coverage
+## Commands
 
-- ✅ Balance inquiry
-- ✅ SIP account management
-- ✅ DID (phone number) management
-- ✅ SMS sending
-- ✅ PBX information
-- ✅ Webhook configuration (get only)
-- ⚠️ Webhook configuration (set) - WIP: investigating API issue
-- ✅ Statistics retrieval
-- ⚠️ SMS webhook listening - requires working webhook set
+### `balance`
 
-## 🛠️ Development
+```bash
+./zadarma-cli --output json balance
+```
 
-See `NOTES.md` for architecture details and `README.md` for quick start.
+### `sip`
 
-## 🐧 Notes
+```bash
+./zadarma-cli --output json sip list
+./zadarma-cli --output json sip info 123456
+```
 
-- This skill is embedded in the repository—no separate wrapper script.
-- The CLI follows Unix philosophy: simple, composable, pipe-friendly.
-- All API calls use Zadarma's HMAC-SHA1 authentication.
+### `phone`
 
----
+```bash
+./zadarma-cli --output json phone list
+./zadarma-cli --output json phone list 14155551234
+./zadarma-cli --output json phone countries
+./zadarma-cli --output json phone country US
+./zadarma-cli --output json phone number 14155551234
+```
 
-Built with Go • Open source • Forgejo CI/CD
+### `sms`
+
+```bash
+./zadarma-cli --output json sms send --phone "14155559999" --message "Hello" --sender "MyBrand"
+./zadarma-cli --output json sms senders --phones "14155559999,442071234567"
+./zadarma-cli --output json sms get-webhook
+./zadarma-cli --output json sms set-webhook "https://example.com/webhook" --port 8080
+./zadarma-cli --output json sms listen --webhook "https://example.com/webhook" --port 8080
+```
+
+### `pbx`
+
+```bash
+./zadarma-cli --output json pbx info
+./zadarma-cli --output json pbx info --pbx-id "123" --numbers "14155551234,442071234567"
+```
+
+### `statistics`
+
+```bash
+./zadarma-cli --output json statistics
+./zadarma-cli --output json statistics --start "2026-03-01 00:00:00" --end "2026-03-07 23:59:59" --sip 123456
+```
+
+### `completion`
+
+```bash
+./zadarma-cli completion bash
+./zadarma-cli completion zsh
+./zadarma-cli completion fish
+./zadarma-cli completion powershell
+```
+
+Pre-generated completion scripts are in `completions/`.
+
+## Capability Summary
+
+- ✅ Account balance
+- ✅ SIP list/status
+- ✅ Phone/DID listing and lookup
+- ✅ SMS send
+- ✅ SMS sender lookup
+- ✅ SMS webhook get/set
+- ✅ SMS local listener
+- ✅ PBX info
+- ✅ Call statistics
+- ✅ Shell completion generation
