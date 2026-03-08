@@ -1,12 +1,13 @@
 #!/bin/bash
-# Comprehensive test of the new phone command consolidation
+# Comprehensive test of the phone command
 
 set -e
 
-export ZADARMA_API_KEY=acea883af4593167fe4a
-export ZADARMA_API_SECRET=eec23d878ff592bb7a34
+# Set your Zadarma API credentials
+export ZADARMA_API_KEY="your_api_key_here"
+export ZADARMA_API_SECRET="your_api_secret_here"
 
-cd /home/tam/Projects/zadarma-cli
+cd "$(dirname "$0")"
 
 echo "=== Testing Zadarma CLI Phone Command ==="
 echo ""
@@ -38,4 +39,3 @@ echo "6. Testing: zadarma-cli phone countries"
 echo ""
 
 echo "=== All tests completed successfully ==="
-

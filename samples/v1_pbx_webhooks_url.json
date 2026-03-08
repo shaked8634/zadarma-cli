@@ -1,6 +1,6 @@
 {
   "status": "success",
-  "url": "https:\/\/soft-moons-draw.loca.lt",
+  "url": "https:\/\/example.webhook.io",
   "hooks": {
     "number_lookup": "true",
     "call_tracking": "true",
