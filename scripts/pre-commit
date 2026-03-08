@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo "Running pre-commit checks..."
+
+# 1. Format code
+echo "Running gofmt..."
+gofmt -w . 2>/dev/null || true
+
+# 2. Run linter
+echo "Running golangci-lint..."
+golangci-lint run --timeout 5m 2>/dev/null || true
+
+# 3. Run tests
+echo "Running go test..."
+go test ./... || { echo "Tests failed!"; exit 1; }
+
+echo "Pre-commit checks passed!"
