@@ -17,7 +17,9 @@ func TestStartSMSListener(t *testing.T) {
 		t.Fatalf("Failed to find available port: %v", err)
 	}
 	port := ln.Addr().(*net.TCPAddr).Port
-	ln.Close()
+	if err := ln.Close(); err != nil {
+		t.Fatalf("Failed to close listener: %v", err)
+	}
 
 	portStr := fmt.Sprintf("%d", port)
 

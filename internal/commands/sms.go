@@ -238,10 +238,10 @@ Examples:
 
 				select {
 				case echoValue := <-validateChan:
-					fmt.Printf("[✓] Received zd_echo: %s\n", echoValue)
-					fmt.Println("[✓] Webhook validated successfully!")
+					fmt.Printf("Received zd_echo: %s\n", echoValue)
+					fmt.Println("Webhook validated successfully!")
 				case <-time.After(60 * time.Second):
-					return failCmd(cmd, fmt.Errorf("validation timeout: Zadarma did not send zd_echo within 60 seconds. Check that your URL is accessible."))
+					return failCmd(cmd, fmt.Errorf("validation timeout: Zadarma did not send zd_echo within 60 seconds. Check that your URL is accessible"))
 				}
 			} else {
 				// Case B: Use existing webhook
@@ -252,7 +252,7 @@ Examples:
 
 				currentURL, ok := webhookInfo["url"]
 				if !ok || currentURL == nil || fmt.Sprint(currentURL) == "" {
-					return failCmd(cmd, fmt.Errorf("no webhook URL configured. Run 'zadarma sms set-webhook <URL>' first to configure a webhook."))
+					return failCmd(cmd, fmt.Errorf("no webhook URL configured. Run 'zadarma sms set-webhook <URL>' first to configure a webhook"))
 				}
 
 				fmt.Printf("Using webhook URL: %v\n", currentURL)
