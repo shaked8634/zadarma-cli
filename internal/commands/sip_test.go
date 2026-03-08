@@ -10,7 +10,7 @@ func TestSIPCommand(t *testing.T) {
 	// Using nil factory since we only check command structure
 	cmd := NewSIPCmd(nil)
 	if cmd == nil {
-		t.Error("Expected NewSIPCmd to return a command, got nil")
+		t.Fatal("Expected NewSIPCmd to return a command, got nil")
 	}
 
 	if cmd.Use != "sip" {

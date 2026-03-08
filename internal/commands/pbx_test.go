@@ -10,7 +10,7 @@ func TestPBXInfoCommand(t *testing.T) {
 	// Using nil factory since we only check command structure
 	cmd := NewPBXCmd(nil)
 	if cmd == nil {
-		t.Error("Expected NewPBXCmd to return a command, got nil")
+		t.Fatal("Expected NewPBXCmd to return a command, got nil")
 	}
 
 	if cmd.Use != "pbx" {

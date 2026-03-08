@@ -10,7 +10,7 @@ func TestPhoneCommand(t *testing.T) {
 	// Using nil factory since we only check command structure
 	cmd := NewPhoneCmd(nil)
 	if cmd == nil {
-		t.Error("Expected NewPhoneCmd to return a command, got nil")
+		t.Fatal("Expected NewPhoneCmd to return a command, got nil")
 	}
 
 	if cmd.Use != "phone" {
