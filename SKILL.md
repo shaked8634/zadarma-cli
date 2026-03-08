@@ -52,6 +52,7 @@ When using this CLI as an agent, always request machine-readable output:
 ```bash
 ./zadarma-cli --output json sip list
 ./zadarma-cli --output json sip info 123456
+./zadarma-cli --output json sip caller-id --id 123456 --number "+14155551234"
 ```
 
 ### `phone`
@@ -103,6 +104,7 @@ Pre-generated completion scripts are in `completions/`.
 
 - ✅ Account balance
 - ✅ SIP list/status
+- ✅ SIP caller-id setting
 - ✅ Phone/DID listing and lookup
 - ✅ SMS send
 - ✅ SMS sender lookup

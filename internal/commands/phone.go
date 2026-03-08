@@ -66,22 +66,10 @@ If one or more numbers are specified, retrieves information for those specific n
 	}
 }
 
-// newPhoneCountriesParentCmd returns the 'phone countries' parent command which contains subcommands like 'list'
+// newPhoneCountriesParentCmd returns the 'phone countries' command
 func newPhoneCountriesParentCmd(factory ClientFactory) *cobra.Command {
-	parent := &cobra.Command{
-		Use:   "countries",
-		Short: "return country codes and ISO",
-		Long:  "Operations related to available direct number countries (list and other country-level actions)",
-	}
-
-	parent.AddCommand(newPhoneCountriesListCmd(factory))
-	return parent
-}
-
-// newPhoneCountriesListCmd returns the 'phone countries list' command
-func newPhoneCountriesListCmd(factory ClientFactory) *cobra.Command {
 	return &cobra.Command{
-		Use:   "list",
+		Use:   "countries",
 		Short: "List country codes and ISO for direct numbers",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput := wantsJSON(cmd)
@@ -108,23 +96,11 @@ func newPhoneCountriesListCmd(factory ClientFactory) *cobra.Command {
 	}
 }
 
-// newPhoneCountryParentCmd returns the 'phone country' parent command which contains subcommands like 'info'
+// newPhoneCountryParentCmd returns the 'phone country' command
 func newPhoneCountryParentCmd(factory ClientFactory) *cobra.Command {
-	parent := &cobra.Command{
-		Use:   "country",
-		Short: "country-specific operations",
-		Long:  "Operations for a specific country, e.g., getting number types in a country",
-	}
-
-	parent.AddCommand(newPhoneCountryInfoCmd(factory))
-	return parent
-}
-
-// newPhoneCountryInfoCmd returns the 'phone country info <code>' command
-func newPhoneCountryInfoCmd(factory ClientFactory) *cobra.Command {
 	return &cobra.Command{
-		Use:   "info <code>",
-		Short: "return number types per country",
+		Use:   "country <code>",
+		Short: "Get number types per country (requires ISO country code)",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput := wantsJSON(cmd)

@@ -5,12 +5,23 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/spf13/cobra"
 )
+
+// IncomingSMS represents a received SMS from Zadarma webhook
+type IncomingSMS struct {
+	Event     string `json:"event"`
+	CallerID  string `json:"caller_id"`
+	CallerDid string `json:"caller_did"`
+	Text      string `json:"text"`
+	Timestamp string `json:"timestamp,omitempty"`
+}
 
 // NewSMSCmd creates the 'sms' command group.
 func NewSMSCmd(factory ClientFactory) *cobra.Command {
@@ -148,21 +159,28 @@ func NewSMSCmd(factory ClientFactory) *cobra.Command {
 
 	listenCmd := &cobra.Command{
 		Use:   "listen",
-		Short: "Listen for incoming SMS webhooks (daemon mode)",
+		Short: "Listen for incoming SMS webhooks",
 		Long: `Start a local HTTP server to receive incoming SMS webhooks from Zadarma.
 
-Before starting, a webhook URL must already be configured in Zadarma.
-Listens on specified port and prints received SMS in text or JSON format.
-Can be run in the background with '&' to keep running while using other CLI commands.
+If --webhook is provided:
+  1. Start local HTTP server
+  2. Register the webhook URL with Zadarma
+  3. Wait for Zadarma validation (zd_echo)
+  4. Continue listening for SMS
 
-To configure a webhook URL first, use:
-  zadarma-cli sms set-webhook <URL>
+If no --webhook is provided:
+  1. Check if a webhook is already configured
+  2. If yes, start listening for SMS
+  3. If no, exit with error
 
 Examples:
-  # Listen on default port 8080
+  # With a webhook URL (requires tunnel like ngrok/localtunnel)
+  zadarma-cli sms listen --webhook https://abc123.ngrok.io
+  
+  # Using existing webhook
   zadarma-cli sms listen
   
-  # Listen on custom port
+  # Custom port
   zadarma-cli sms listen --port 9000`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput := wantsJSON(cmd)
@@ -171,42 +189,81 @@ Examples:
 				port = "8080"
 			}
 
-			// New: webhook flag to register a webhook before listening
 			webhookFlag, _ := cmd.Flags().GetString("webhook")
 
 			c := factory()
 
+			// Start HTTP server for listening
+			validateChan := make(chan string, 1)
+			serverErr := make(chan error, 1)
+
+			go func() {
+				serverErr <- startSMSListener(port, jsonOutput, validateChan)
+			}()
+
+			// Give server time to start
+			time.Sleep(500 * time.Millisecond)
+
 			if webhookFlag != "" {
-				// Register the webhook and enable SMS hooks
+				// Case A: Register new webhook and wait for validation
 				fmt.Printf("Registering webhook URL: %s\n", webhookFlag)
 				if _, err := c.SetWebhook(webhookFlag); err != nil {
 					return failCmd(cmd, fmt.Errorf("failed to set webhook URL: %w", err))
 				}
 				fmt.Println("✓ Webhook registered")
-				if _, err := c.SetWebhookHooks(true); err != nil {
-					return failCmd(cmd, fmt.Errorf("failed to enable sms hooks: %w", err))
+
+				// Check current hooks state
+				webhookInfo, _ := c.GetWebhooks()
+				hooks, _ := webhookInfo["hooks"].(map[string]interface{})
+				smsEnabled := false
+				if hooks != nil {
+					if v, ok := hooks["sms"]; ok {
+						smsEnabled = v == "true" || v == true
+					}
+				}
+
+				if !smsEnabled {
+					if _, err := c.SetWebhookHooks(true); err != nil {
+						errStr := err.Error()
+						if !strings.Contains(errStr, "Update error") {
+							return failCmd(cmd, fmt.Errorf("failed to enable sms hooks: %w", err))
+						}
+					}
 				}
 				fmt.Println("✓ SMS webhooks enabled")
+
+				// Wait for validation (zd_echo) with 60 second timeout
+				fmt.Println("[INFO] Waiting for Zadarma validation (zd_echo request)...")
+				fmt.Println("[INFO] Timeout: 60 seconds")
+
+				select {
+				case echoValue := <-validateChan:
+					fmt.Printf("[✓] Received zd_echo: %s\n", echoValue)
+					fmt.Println("[✓] Webhook validated successfully!")
+				case <-time.After(60 * time.Second):
+					return failCmd(cmd, fmt.Errorf("validation timeout: Zadarma did not send zd_echo within 60 seconds. Check that your URL is accessible."))
+				}
+			} else {
+				// Case B: Use existing webhook
+				webhookInfo, err := c.GetWebhooks()
+				if err != nil {
+					return failCmd(cmd, fmt.Errorf("failed to fetch webhook info: %w", err))
+				}
+
+				currentURL, ok := webhookInfo["url"]
+				if !ok || currentURL == nil || fmt.Sprint(currentURL) == "" {
+					return failCmd(cmd, fmt.Errorf("no webhook URL configured. Run 'zadarma sms set-webhook <URL>' first to configure a webhook."))
+				}
+
+				fmt.Printf("Using webhook URL: %v\n", currentURL)
 			}
 
-			// Fetch current webhook URL first
-			webhookInfo, err := c.GetWebhooks()
-			if err != nil {
-				return failCmd(cmd, fmt.Errorf("failed to fetch webhook info: %w", err))
-			}
-
-			// Check if webhook is configured
-			currentURL, ok := webhookInfo["url"]
-			if !ok || currentURL == nil || fmt.Sprint(currentURL) == "" {
-				return failCmd(cmd, fmt.Errorf("no webhook URL configured in Zadarma. Use 'zadarma-cli sms set-webhook <URL>' to configure one"))
-			}
-
-			fmt.Printf("Using webhook URL: %v\n", currentURL)
 			fmt.Printf("\n🐧 Zadarma SMS Listener starting on port %s...\n", port)
 			fmt.Println("Waiting for incoming SMS... (Press Ctrl+C to stop)")
 			fmt.Println()
 
-			return startSMSListener(port, jsonOutput)
+			// Return error from server if any
+			return <-serverErr
 		},
 	}
 
@@ -280,7 +337,7 @@ Examples:
 			fmt.Println("Waiting for incoming SMS... (Press Ctrl+C to stop)")
 			fmt.Println()
 
-			return startSMSListener(port, jsonOutput)
+			return startSMSListener(port, jsonOutput, nil)
 		},
 	}
 
@@ -288,38 +345,84 @@ Examples:
 	// Silence usage for set-webhook command
 	setWebhookCmd.SilenceUsage = true
 
+	getWebhookCmd := &cobra.Command{
+		Use:   "get-webhook",
+		Short: "Get the current notification webhook URL",
+		Long:  "Retrieves the currently configured webhook URL from Zadarma.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			jsonOutput := wantsJSON(cmd)
+			c := factory()
+
+			result, err := c.GetWebhooks()
+			if err != nil {
+				return failCmd(cmd, err)
+			}
+
+			if jsonOutput {
+				out, _ := json.MarshalIndent(result, "", "  ")
+				fmt.Println(string(out))
+			} else {
+				if v, ok := result["url"]; ok && v != nil && v != "" {
+					fmt.Printf("Webhook URL: %v\n", v)
+					if hooks, ok := result["hooks"].(map[string]interface{}); ok {
+						fmt.Println("Enabled hooks:")
+						for hook, enabled := range hooks {
+							fmt.Printf("  - %s: %v\n", hook, enabled)
+						}
+					}
+				} else {
+					fmt.Println("No webhook URL configured.")
+				}
+			}
+			return nil
+		},
+		SilenceUsage: true,
+	}
+
 	cmd.AddCommand(sendCmd)
 	cmd.AddCommand(sendersCmd)
 	cmd.AddCommand(listenCmd)
 	cmd.AddCommand(setWebhookCmd)
+	cmd.AddCommand(getWebhookCmd)
 	return cmd
 }
 
 // printSMSEvent formats an incoming SMS event for text output
-func printSMSEvent(data map[string]interface{}) {
+func printSMSEvent(sms *IncomingSMS) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	defer func() { _ = w.Flush() }()
 
 	_, _ = fmt.Fprintln(w, "--- INCOMING SMS ---")
-	_, _ = fmt.Fprintln(w, "FROM\t", getStringField(data, "caller_id", "-"))
-	_, _ = fmt.Fprintln(w, "TO\t", getStringField(data, "caller_did", "-"))
-	_, _ = fmt.Fprintln(w, "TEXT\t", getStringField(data, "text", "-"))
-	if ts, ok := data["timestamp"]; ok {
-		_, _ = fmt.Fprintln(w, "TIME\t", fmt.Sprint(ts))
+	_, _ = fmt.Fprintln(w, "FROM\t", sms.CallerID)
+	_, _ = fmt.Fprintln(w, "TO\t", sms.CallerDid)
+	_, _ = fmt.Fprintln(w, "TEXT\t", sms.Text)
+	if sms.Timestamp != "" {
+		_, _ = fmt.Fprintln(w, "TIME\t", sms.Timestamp)
 	}
 	_, _ = fmt.Fprintln(w, "-------------------")
 }
 
-// startSMSListener starts an HTTP server to listen for incoming SMS webhooks
-func startSMSListener(port string, jsonOutput bool) error {
+// startSMSListener starts an HTTP server to listen for incoming SMS webhooks.
+// If validateChan is not nil, it will be sent the zd_echo value when validation request is received.
+func startSMSListener(port string, jsonOutput bool, validateChan chan string) error {
 	// HTTP handler for incoming SMS
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Handle Zadarma verification (zd_echo)
 		if echo := r.URL.Query().Get("zd_echo"); echo != "" {
 			_, _ = fmt.Fprint(w, echo)
-			if !jsonOutput {
-				fmt.Printf("[VERIFICATION] Responded to zd_echo: %s\n", echo)
+
+			// Send to channel if provided
+			if validateChan != nil {
+				select {
+				case validateChan <- echo:
+				default:
+				}
 			}
+
+			fmt.Printf("[DEBUG] zd_echo request received: %s\n", echo)
+			fmt.Printf("[DEBUG] Responding with: %s\n", echo)
+			fmt.Printf("[DEBUG] Full response headers: Content-Type=%s\n", w.Header().Get("Content-Type"))
+			fmt.Println("[INFO] Webhook validation successful! Continuing to listen for SMS...")
 			return
 		}
 
@@ -327,33 +430,61 @@ func startSMSListener(port string, jsonOutput bool) error {
 			body, _ := io.ReadAll(r.Body)
 			_ = r.Body.Close()
 
-			var data map[string]interface{}
-			parseErr := json.Unmarshal(body, &data)
+			// Parse form-encoded body (e.g., event=SMS&result=%7B...%7D)
+			form, parseErr := url.ParseQuery(string(body))
+			if parseErr != nil {
+				fmt.Printf("[ERROR] Failed to parse form data: %v\n", parseErr)
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			}
 
-			if parseErr == nil && data["event"] == "SMS" {
-				// SMS event received
+			event := form.Get("event")
+
+			if event == "SMS" {
+				// Get the URL-encoded JSON result
+				resultEncoded := form.Get("result")
+				if resultEncoded == "" {
+					fmt.Println("[ERROR] Missing 'result' field in SMS event")
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+
+				// Decode URL-encoded JSON
+				resultJSON, decodeErr := url.QueryUnescape(resultEncoded)
+				if decodeErr != nil {
+					fmt.Printf("[ERROR] Failed to decode result: %v\n", decodeErr)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+
+				// Parse inner JSON
+				var sms IncomingSMS
+				if jsonErr := json.Unmarshal([]byte(resultJSON), &sms); jsonErr != nil {
+					fmt.Printf("[ERROR] Failed to parse SMS JSON: %v\n", jsonErr)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+
 				if jsonOutput {
-					// JSON output: just print the parsed data
-					out, _ := json.MarshalIndent(data, "", "  ")
+					out, _ := json.MarshalIndent(sms, "", "  ")
 					fmt.Println(string(out))
 				} else {
-					// Text output: formatted table
-					printSMSEvent(data)
+					printSMSEvent(&sms)
 				}
-			} else if parseErr == nil {
+			} else if event != "" {
 				// Other event types
 				if jsonOutput {
-					out, _ := json.MarshalIndent(data, "", "  ")
+					eventData := map[string]string{"event": event}
+					out, _ := json.MarshalIndent(eventData, "", "  ")
 					fmt.Println(string(out))
 				} else {
-					fmt.Printf("[EVENT] Type: %v\n", data["event"])
+					fmt.Printf("[EVENT] %s\n", event)
 				}
 			} else {
-				// Raw output if not JSON-parseable
+				// No event field - raw output
 				if jsonOutput {
-					// In JSON mode, print what we got as a structured error message
 					errData := map[string]interface{}{
-						"error": "Failed to parse webhook body as JSON",
+						"error": "No 'event' field in webhook body",
 						"raw":   string(body),
 					}
 					out, _ := json.MarshalIndent(errData, "", "  ")

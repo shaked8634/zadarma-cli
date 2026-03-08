@@ -79,7 +79,48 @@ func NewSIPCmd(factory ClientFactory) *cobra.Command {
 				return nil
 			},
 		},
+		&cobra.Command{
+			Use:          "caller-id",
+			Short:        "Set caller ID for a SIP account",
+			Long:         "Set the caller ID ( CallerID ) for outgoing calls from a SIP account.",
+			SilenceUsage: true,
+			RunE: func(cmd *cobra.Command, args []string) error {
+				jsonOutput := wantsJSON(cmd)
+				sipID, _ := cmd.Flags().GetString("id")
+				number, _ := cmd.Flags().GetString("number")
+
+				if sipID == "" {
+					return failCmd(cmd, fmt.Errorf("--id is required"))
+				}
+				if number == "" {
+					return failCmd(cmd, fmt.Errorf("--number is required"))
+				}
+
+				c := factory()
+
+				result, err := c.SetSipCallerID(sipID, number)
+				if err != nil {
+					log.Debugf("Failed to set caller ID: %v", err)
+					return failCmd(cmd, err)
+				}
+
+				if jsonOutput {
+					out, _ := json.MarshalIndent(result, "", "  ")
+					fmt.Println(string(out))
+				} else {
+					fmt.Printf("Caller ID set successfully for SIP %s\n", sipID)
+					if n, ok := result["caller_id"].(string); ok {
+						fmt.Printf("Caller ID: %s\n", n)
+					}
+				}
+				return nil
+			},
+		},
 	)
+
+	// Add flags for caller-id command
+	cmd.Flags().String("id", "", "SIP account ID")
+	cmd.Flags().String("number", "", "Caller ID number to set")
 
 	return cmd
 }

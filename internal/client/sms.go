@@ -69,8 +69,6 @@ func (c *Client) GetSMSSenders(phones string) ([]map[string]interface{}, error) 
 		var arr []map[string]interface{}
 		if err := json.Unmarshal(dataRaw, &arr); err == nil {
 			result = arr
-		} else {
-			// If data present but not in expected shape, ignore and try senders
 		}
 	}
 

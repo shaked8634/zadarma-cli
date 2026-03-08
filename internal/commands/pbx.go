@@ -45,8 +45,8 @@ func NewPBXCmd(factory ClientFactory) *cobra.Command {
 			w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 			defer func() { _ = w.Flush() }()
 
-			fmt.Fprintln(w, "pbx_id\tnumbers")
-			fmt.Fprintln(w, "------\t-------")
+			_, _ = fmt.Fprintln(w, "pbx_id\tnumbers")
+			_, _ = fmt.Fprintln(w, "------\t-------")
 
 			pbxIDVal := ""
 			if v, ok := pbxInfo["pbx_id"]; ok {
@@ -67,7 +67,7 @@ func NewPBXCmd(factory ClientFactory) *cobra.Command {
 				}
 			}
 
-			fmt.Fprintf(w, "%s\t%s\n", pbxIDVal, numbersVal)
+			_, _ = fmt.Fprintf(w, "%s\t%s\n", pbxIDVal, numbersVal)
 			return nil
 		},
 	}

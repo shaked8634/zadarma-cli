@@ -10,11 +10,41 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen]
+}
+
+func formatFloat(v interface{}) string {
+	if v == nil {
+		return "-"
+	}
+	switch val := v.(type) {
+	case float64:
+		return fmt.Sprintf("%.2f", val)
+	case string:
+		return val
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func getStringOrDefault(m map[string]interface{}, key, def string) string {
+	if v, ok := m[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+		return fmt.Sprintf("%v", v)
+	}
+	return def
+}
+
 // NewStatisticsCmd creates the 'statistics' command.
 func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
 	var start, end string
 	var sip int
-	var costOnly bool
 
 	cmd := &cobra.Command{
 		Use:          "statistics",
@@ -59,9 +89,6 @@ func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
 			if sip != 0 {
 				params.Set("sip", fmt.Sprintf("%d", sip))
 			}
-			if costOnly {
-				params.Set("cost_only", "1")
-			}
 
 			stats, err := c.GetStatistics(params)
 			if err != nil {
@@ -78,15 +105,31 @@ func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
 					return nil
 				}
 
-				fmt.Printf("%-20s | %-15s | %-10s | %-10s | %-s\n", "Time", "From", "Duration", "Cost", "Destination")
-				fmt.Println("--------------------------------------------------------------------------------")
+				// Print header
+				fmt.Printf("%-19s | %-6s | %-10s | %-10s | %-8s | %-8s | %-10s | %s\n",
+					"Time", "SIP", "From", "To", "Duration", "Cost", "Currency", "Description")
+				fmt.Println("-------------------------------------------------------------------------------------------------------------------------------------------------------")
 				for _, s := range stats {
-					fmt.Printf("%-20v | %-15v | %-10v | %-10v | %-v\n",
-						s["callstart"],
-						s["sip"],
-						s["billseconds"],
-						s["billcost"],
-						s["destination"],
+					from := getStringOrDefault(s, "from", "-")
+					to := getStringOrDefault(s, "to", "-")
+					sip := getStringOrDefault(s, "sip", "-")
+					duration := formatFloat(s["billseconds"])
+					cost := formatFloat(s["cost"])
+					billcost := formatFloat(s["billcost"])
+					currency := getStringOrDefault(s, "currency", "-")
+					desc := getStringOrDefault(s, "description", "-")
+					disp := getStringOrDefault(s, "disposition", "-")
+					hangup := getStringOrDefault(s, "hangupcause", "-")
+
+					fmt.Printf("%-19s | %-6s | %-10s | %-10s | %-8s | %-8s | %-10s | %s\n",
+						getStringOrDefault(s, "callstart", "-"),
+						truncate(sip, 6),
+						truncate(from, 10),
+						truncate(to, 10),
+						duration,
+						cost+" ("+billcost+")",
+						currency,
+						desc+" ["+disp+","+hangup+"]",
 					)
 				}
 			}
@@ -98,7 +141,6 @@ func NewStatisticsCmd(factory ClientFactory) *cobra.Command {
 	cmd.Flags().StringVar(&start, "start", "", "Start date (YYYY-MM-DD HH:MM:SS)")
 	cmd.Flags().StringVar(&end, "end", "", "End date (YYYY-MM-DD HH:MM:SS)")
 	cmd.Flags().IntVar(&sip, "sip", 0, "SIP account to filter by (integer)")
-	cmd.Flags().BoolVar(&costOnly, "cost-only", false, "Retrieve only costs")
 
 	return cmd
 }

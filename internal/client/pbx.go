@@ -101,16 +101,37 @@ func (c *Client) GetWebhooks() (map[string]interface{}, error) {
 	method := "/pbx/webhooks/url/"
 	params := url.Values{}
 
-	var resp struct {
-		Status string                 `json:"status"`
-		Data   map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Get(method, params, &resp); err != nil {
+	var raw map[string]interface{}
+	if err := c.Get(method, params, &raw); err != nil {
 		return nil, err
 	}
 
-	return resp.Data, nil
+	if st, _ := raw["status"].(string); st != "success" {
+		msg := st
+		if m, _ := raw["message"].(string); m != "" {
+			msg = m
+		}
+		if msg == "" {
+			return nil, fmt.Errorf("API error: unknown status")
+		}
+		return nil, fmt.Errorf("API error: %s", msg)
+	}
+
+	// Check if response has nested "data" field (some APIs wrap it)
+	if data, ok := raw["data"].(map[string]interface{}); ok && data != nil {
+		return data, nil
+	}
+
+	// Otherwise return everything except status
+	out := map[string]interface{}{}
+	for k, v := range raw {
+		if k == "status" || k == "message" {
+			continue
+		}
+		out[k] = v
+	}
+
+	return out, nil
 }
 
 // SetWebhookHooks enables or disables webhook event types (e.g., sms).
@@ -124,24 +145,40 @@ func (c *Client) SetWebhookHooks(enableSMS bool) (map[string]interface{}, error)
 		params.Set("sms", "false")
 	}
 
-	var resp struct {
-		Status string                 `json:"status"`
-		Data   map[string]interface{} `json:"data"`
-	}
-
-	if err := c.Post(method, params, nil, &resp); err != nil {
+	var raw map[string]interface{}
+	if err := c.Post(method, params, nil, &raw); err != nil {
 		return nil, err
 	}
 
-	if resp.Status != "success" {
-		return nil, fmt.Errorf("API error: %s", resp.Status)
+	if st, _ := raw["status"].(string); st != "success" {
+		msg := st
+		if m, _ := raw["message"].(string); m != "" {
+			msg = m
+		}
+		if msg == "" {
+			return nil, fmt.Errorf("API error: unknown status")
+		}
+		return nil, fmt.Errorf("API error: %s", msg)
 	}
 
-	// Normalize response
-	b, _ := json.Marshal(resp.Data)
-	var norm map[string]interface{}
-	_ = json.Unmarshal(b, &norm)
-	return norm, nil
+	// Check for nested data
+	if data, ok := raw["data"].(map[string]interface{}); ok && data != nil {
+		b, _ := json.Marshal(data)
+		var norm map[string]interface{}
+		_ = json.Unmarshal(b, &norm)
+		return norm, nil
+	}
+
+	// Return everything except status
+	out := map[string]interface{}{}
+	for k, v := range raw {
+		if k == "status" || k == "message" {
+			continue
+		}
+		out[k] = v
+	}
+
+	return out, nil
 }
 
 // GetPBXInternalStatus fetches PBX internal status for a specific PBX ID.

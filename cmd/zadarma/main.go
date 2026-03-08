@@ -62,9 +62,10 @@ func main() {
 	rootCmd.AddCommand(commands.NewSMSCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewPBXCmd(clientFactory))
 	rootCmd.AddCommand(commands.NewStatisticsCmd(clientFactory))
-	rootCmd.AddCommand(commands.NewWebhookCmd(clientFactory))
 
 	if err := rootCmd.Execute(); err != nil {
+		// Print the error for unknown commands or other issues
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }

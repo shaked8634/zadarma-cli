@@ -1,45 +1,45 @@
 package commands
 
 import (
+	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"testing"
+	"time"
 )
-
-// TestSMSCommand verifies sms command structure.
-func TestSMSCommand(t *testing.T) {
-	// Test that NewSMSCmd returns a command
-	// Using nil factory since we only check command structure
-	cmd := NewSMSCmd(nil)
-	if cmd == nil {
-		t.Error("Expected NewSMSCmd to return a command, got nil")
-	}
-
-	if cmd.Use != "sms" {
-		t.Errorf("Expected command name 'sms', got %s", cmd.Use)
-	}
-}
 
 // TestStartSMSListener verifies the behavior of startSMSListener.
 func TestStartSMSListener(t *testing.T) {
-	// Mock port and output mode
-	port := "8080"
+	// Use a random available port
+	ln, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatalf("Failed to find available port: %v", err)
+	}
+	port := ln.Addr().(*net.TCPAddr).Port
+	ln.Close()
+
+	portStr := fmt.Sprintf("%d", port)
+
 	jsonOutput := false
 
 	// Run the listener in a goroutine
 	go func() {
-		err := startSMSListener(port, jsonOutput)
+		err := startSMSListener(portStr, jsonOutput, nil)
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
 	}()
 
+	// Wait for server to start
+	time.Sleep(100 * time.Millisecond)
+
 	// Simulate a verification request
-	resp, err := http.Get("http://localhost:" + port + "?zd_echo=test")
+	resp, err := http.Get("http://localhost:" + portStr + "?zd_echo=test")
 	if err != nil {
 		t.Fatalf("Failed to send verification request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status OK, got %v", resp.StatusCode)

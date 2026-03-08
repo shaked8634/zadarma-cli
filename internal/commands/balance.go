@@ -21,9 +21,6 @@ func NewBalanceCmd(factory ClientFactory) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			jsonOutput, _ := cmd.Flags().GetBool("json")
 			if !jsonOutput {
-				if jb, _ := cmd.Root().PersistentFlags().GetBool("json"); jb {
-					jsonOutput = true
-				}
 				of, _ := cmd.Root().PersistentFlags().GetString("output")
 				jsonOutput = of == "json"
 			}

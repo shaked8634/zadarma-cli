@@ -71,6 +71,7 @@ zadarma-cli [command] [flags]
 ### `sip`
 - `zadarma-cli sip list`
 - `zadarma-cli sip info <ID>`
+- `zadarma-cli sip caller-id --id <ID> --number <NUMBER>`
 
 ### `phone`
 - `zadarma-cli phone list [number...]`
