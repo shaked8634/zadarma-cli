@@ -19,7 +19,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: '1.25'
           cache: true
 
       - name: Run tests
@@ -28,7 +28,8 @@ jobs:
       - name: Build binary
         run: |
           mkdir -p dist/release
-          GOOS=linux GOARCH=amd64 go build -v -o dist/release/zadarma-linux-amd64 ./cmd/zadarma
+          VERSION=$(echo ${{ forge.ref_name }} | sed 's/^v//')
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=$VERSION" -v -o dist/release/zadarma-linux-amd64 ./cmd/zadarma
           ls -la dist/release/
 
       - name: Upload release
