@@ -25,7 +25,7 @@ func TestGetDirectNumbers(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	dids, err := client.GetDirectNumbers()
@@ -61,7 +61,7 @@ func TestGetDirectCountries(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	countries, err := client.GetDirectCountries()
@@ -100,7 +100,7 @@ func TestGetDirectCountry(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	destinations, err := client.GetDirectCountry("US")
@@ -137,7 +137,7 @@ func TestGetDirectNumber(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	info, err := client.GetDirectNumber("14155555555")

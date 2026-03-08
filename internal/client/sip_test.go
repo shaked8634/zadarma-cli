@@ -26,7 +26,7 @@ func TestGetSIPs(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	sips, err := client.GetSIPs()
@@ -64,7 +64,7 @@ func TestGetSIPStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	isOnline, err := client.GetSIPStatus("user1")

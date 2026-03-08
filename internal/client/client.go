@@ -15,6 +15,7 @@ import (
 
 const (
 	BaseURL    = "https://api.zadarma.com"
+	SandboxURL = "https://api-sandbox.zadarma.com"
 	APIVersion = "/v1"
 )
 
@@ -27,11 +28,16 @@ type Client struct {
 }
 
 // NewClient creates a new Zadarma API client.
-func NewClient(apiKey, apiSecret string, debug bool) *Client {
+// Use sandbox=true for the Zadarma sandbox API.
+func NewClient(apiKey, apiSecret string, debug bool, sandbox bool) *Client {
 	// configure global logger debug flag based on client setting
 	log.SetDebug(debug)
+	baseURL := BaseURL
+	if sandbox {
+		baseURL = SandboxURL
+	}
 	return &Client{
-		baseURL: BaseURL + APIVersion,
+		baseURL: baseURL + APIVersion,
 		signer:  auth.NewSigner(apiKey, apiSecret),
 		http:    &http.Client{},
 		debug:   debug,

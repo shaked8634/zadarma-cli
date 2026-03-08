@@ -22,7 +22,7 @@ func TestGetPBXInfo(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	pbxInfo, err := client.GetPBXInfo("", "")
@@ -55,7 +55,7 @@ func TestGetPBXInternalStatus(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	status, err := client.GetPBXInternalStatus("pbx123")
@@ -88,7 +88,7 @@ func TestGetPBXInternalInfo(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	info, err := client.GetPBXInternalInfo("pbx123")
@@ -130,7 +130,7 @@ func TestSetWebhook(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	result, err := client.SetWebhook("https://example.com/webhook")
@@ -163,7 +163,7 @@ func TestGetWebhook(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewClient("test_key", "test_secret", false)
+	client := NewClient("test_key", "test_secret", false, false)
 	client.baseURL = server.URL + "/v1"
 
 	webhook, err := client.GetWebhooks()

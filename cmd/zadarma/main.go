@@ -16,6 +16,7 @@ var (
 	apiSecret    string
 	outputFormat string
 	debug        bool
+	sandbox      bool
 )
 
 func main() {
@@ -48,12 +49,13 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&apiSecret, "secret", "s", "", "Zadarma API secret")
 	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "text", "Output format (text|json)")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debug output")
+	rootCmd.PersistentFlags().BoolVarP(&sandbox, "sandbox", "z", false, "Use sandbox API (api-sandbox.zadarma.com)")
 
 	// Hide the explicit 'help' subcommand (users can still use --help)
 	rootCmd.SetHelpCommand(&cobra.Command{Hidden: true})
 
 	clientFactory := func() *client.Client {
-		return client.NewClient(apiKey, apiSecret, debug)
+		return client.NewClient(apiKey, apiSecret, debug, sandbox)
 	}
 
 	rootCmd.AddCommand(commands.NewBalanceCmd(clientFactory))

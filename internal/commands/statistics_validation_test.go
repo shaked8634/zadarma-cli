@@ -11,7 +11,7 @@ import (
 )
 
 func TestStatisticsValidation(t *testing.T) {
-	mockFactory := func() *client.Client { return client.NewClient("test", "test", false) }
+	mockFactory := func() *client.Client { return client.NewClient("test", "test", false, false) }
 
 	tests := []struct {
 		name        string

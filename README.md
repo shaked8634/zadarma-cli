@@ -107,6 +107,10 @@ Pre-generated scripts are available in `completions/`.
 zadarma-cli --output json phone list
 ```
 
+## For AI Agents
+
+AI agents should use the `SKILL.md` file in this repository for CLI usage guidelines and best practices.
+
 ## API Documentation
 
 https://zadarma.com/en/support/api/
